@@ -20,7 +20,7 @@ const Login = ({ toggleColorMode }) => {
 
     try {
       // O endpoint deve coincidir com o AuthController do seu backend
-      const response = await fetch('http://localhost:8080/auth/login', {
+      const response = await fetch('https://dmmps-gerenciador-api-arzr.onrender.com', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, senha }), // Mapeia para o LoginRequestDTO

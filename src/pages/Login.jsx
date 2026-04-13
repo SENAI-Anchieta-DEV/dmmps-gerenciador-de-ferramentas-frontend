@@ -24,7 +24,7 @@ const Login = ({ toggleColorMode }) => {
   const timeoutId = setTimeout(() => controller.abort(), 60000);
 
   try {
-    const response = await fetch('https://dmmps-gerenciador-api-arzr.onrender.com', {
+    const response = await fetch('https://dmmps-gerenciador-api-arzr.onrender.com/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, senha }),

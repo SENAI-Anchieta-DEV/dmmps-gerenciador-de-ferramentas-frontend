@@ -14,33 +14,44 @@ const Login = ({ toggleColorMode }) => {
   const [loading, setLoading] = useState(false); // NOVO: Estado de carregamento
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setErro('');
-    setLoading(true); // Inicia o carregamento
+  e.preventDefault();
+  setErro('');
+  setLoading(true);
 
-    try {
-      // O endpoint deve coincidir com o AuthController do seu backend
-      const response = await fetch('https://dmmps-gerenciador-api-arzr.onrender.com', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, senha }), // Mapeia para o LoginRequestDTO
-      });
+  // 1. Criar o controlador de aborto
+  const controller = new AbortController();
+  // 2. Definir o tempo limite (60 segundos para o cold start da Render)
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-      if (response.ok) {
-        const data = await response.json(); // Espera o TokenResponseDTO
-        localStorage.setItem('token', data.token);
-        navigate('/dashboard'); 
-      } else {
-        const errorData = await response.json();
-        // Exibe a mensagem detalhada vinda do backend ou uma padrão
-        setErro(errorData.detail || 'Email ou senha incorretos.');
-      }
-    } catch (err) {
-      setErro('Não foi possível conectar ao servidor. Verifique se o backend está rodando.');
-    } finally {
-      setLoading(false); // Finaliza o carregamento
+  try {
+    const response = await fetch('https://dmmps-gerenciador-api-arzr.onrender.com', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, senha }),
+      signal: controller.signal, // 3. Passar o sinal para o fetch
+    });
+
+    clearTimeout(timeoutId); // Limpa o timer se a resposta chegar antes
+
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+      navigate('/dashboard'); 
+    } else {
+      const errorData = await response.json();
+      setErro(errorData.detail || 'Email ou senha incorretos.');
     }
-  };
+  } catch (err) {
+    // 4. Tratar especificamente o erro de timeout
+    if (err.name === 'AbortError') {
+      setErro('O servidor está demorando muito para responder (Cold Start). Tente novamente em instantes.');
+    } else {
+      setErro('Não foi possível conectar ao servidor. Verifique sua conexão.');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Box sx={{ 

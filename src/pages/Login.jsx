@@ -150,6 +150,7 @@ const Login = ({ toggleColorMode }) => {
                 {loading ? <CircularProgress size={24} color="inherit" /> : 'Entrar'}
               </Button>
             </Box>
+            
           </Box>
         </Box>
 

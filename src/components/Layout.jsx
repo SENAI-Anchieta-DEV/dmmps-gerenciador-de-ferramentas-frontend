@@ -20,7 +20,7 @@ const drawerWidth = 260;
 const menuItems = [
   { text: 'Menu', icon: <MenuOpenIcon />, path: null }, 
   { text: 'Início', icon: <DashboardIcon />, path: '/dashboard' },
-  { text: 'Em uso', icon: <ConstructionIcon />, path: '/dashboard/em-uso' },
+  { text: 'Disponível', icon: <ConstructionIcon />, path: '/dashboard/disponivel' },
   { text: 'Ferramentas', icon: <SettingsIcon />, path: '/dashboard/ferramentas' },
   { text: 'Ocorrências', icon: <WarningIcon />, path: '/dashboard/ocorrencias' },
   { text: 'Perfil', icon: <AccountCircleIcon />, path: '/dashboard/perfil' },
@@ -121,17 +121,17 @@ const Layout = ({ toggleColorMode }) => {
           <Box sx={{ display: 'flex', gap: 1.5 }}> 
             <Chip 
               icon={<Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#85FF80', ml: 1 }} />}
-              label="Em Uso" variant="outlined" sx={{ borderRadius: '20px', borderColor: 'divider', fontWeight: 600 }}
+              label="Disponível" variant="outlined" sx={{ borderRadius: '20px', borderColor: 'divider', fontWeight: 600 }}
             />
             
-            {!isEmUsoPage && ( // Só mostra os outros se NÃO estiver na página "Em Uso"
+            {!isEmUsoPage && ( // Só mostra os outros se NÃO estiver na página "Disponível"
               <>
                 <Chip 
-                  icon={<Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#FF6961', ml: 1 }} />}
-                  label="Não Devolvidas" variant="outlined" sx={{ borderRadius: '20px', borderColor: 'divider' }}
+                  icon={<Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#FFB347', ml: 1 }} />}
+                  label="Em uso" variant="outlined" sx={{ borderRadius: '20px', borderColor: 'divider' }}
                 />
                 <Chip 
-                  icon={<Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#FFB347', ml: 1 }} />}
+                  icon={<Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#FF6961', ml: 1 }} />}
                   label="Manutenção" variant="outlined" sx={{ borderRadius: '20px', borderColor: 'divider' }}
                 />
               </>

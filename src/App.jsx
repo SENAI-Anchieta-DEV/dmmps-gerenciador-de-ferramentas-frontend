@@ -8,6 +8,9 @@ import Layout from './components/Layout';
 import DashboardInicio from './pages/DashboardInicio';
 import EmUso from './pages/EmUso';
 import Ferramentas from './pages/Ferramentas';
+import Ocorrencias from './pages/Ocorrencias';
+import CadastrarPerfil from './pages/CadastrarPerfil'; 
+import ListarPerfis from './pages/ListarPerfis';
 
 function App() {
   const [mode, setMode] = useState('light');
@@ -15,14 +18,28 @@ function App() {
   const theme = useMemo(() => createTheme({
     palette: { 
       mode,
-      primary: { main: '#1a1a1a' },
+      primary: { main: '#14213D' },
       background: {
-        // Opcional: ajustar o cinza do modo escuro para não ficar 100% preto
-        default: mode === 'light' ? '#FBFBFB' : '#121212',
-        paper: mode === 'light' ? '#ffffff' : '#1e1e1e',
+        default: mode === 'light' ? '#f5f5f5' : '#0A1128', 
+        paper: mode === 'light' ? '#ffffff' : '#14213D',
+      },
+      text: {
+        primary: mode === 'light' ? '#000000' : '#ffffff',
       }
     },
-    typography: { fontFamily: 'Poppins, sans-serif' }
+
+    components: {
+      MuiCssBaseline: {
+        styleOverrides: `
+          @font-face {
+            font-family: 'Poppins';
+            font-style: normal;
+            display: swap;
+            font-weight: 400;
+          }
+        `,
+      },
+    },
   }), [mode]);
 
   const toggleColorMode = () => {
@@ -31,30 +48,24 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
+      {/* O CssBaseline é essencial: ele aplica a fonte no <body> automaticamente */}
+      <CssBaseline /> 
       <BrowserRouter>
         <Routes>
-  {/* Rotas Públicas */}
-  <Route path="/" element={<BoasVindas toggleColorMode={toggleColorMode} />} />
-  <Route path="/login" element={<Login toggleColorMode={toggleColorMode} />} />
+          <Route path="/" element={<BoasVindas toggleColorMode={toggleColorMode} />} />
+          <Route path="/login" element={<Login toggleColorMode={toggleColorMode} />} />
 
-  {/* Rotas da Dashboard (Privadas/Layout) */}
-  <Route path="/dashboard" element={<Layout toggleColorMode={toggleColorMode} />}>
-    {/* Rota padrão (Início) */}
-    <Route index element={<DashboardInicio />} /> 
-    
-    {/* Rota "Em Uso" - Agora com o componente real */}
-    <Route path="em-uso" element={<EmUso />} /> 
-    
-    <Route path="ferramentas" element={<Ferramentas />} />/
-     {/* Outras rotas (Ainda em desenvolvimento) */}
-    <Route path="ocorrencias" element={<div>Página Ocorrências (Em breve...)</div>} />
-    <Route path="perfil" element={<div>Página Perfil (Em breve...)</div>} />
-  </Route>
+          <Route path="/dashboard" element={<Layout toggleColorMode={toggleColorMode} />}>
+            <Route index element={<DashboardInicio />} /> 
+            <Route path="em-uso" element={<EmUso />} /> 
+            <Route path="ferramentas" element={<Ferramentas />} />
+            <Route path="ocorrencias" element={<Ocorrencias />} />
+            <Route path="perfil/cadastrar" element={<CadastrarPerfil />} />
+            <Route path="perfil/listar" element={<ListarPerfis />} />
+          </Route>
 
-  {/* Redirecionamento de segurança */}
-  <Route path="*" element={<Navigate to="/" />} />
-</Routes>
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
       </BrowserRouter>
     </ThemeProvider>
   );

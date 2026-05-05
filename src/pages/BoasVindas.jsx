@@ -1,53 +1,116 @@
-import React from 'react';
-import { Box, Button, Typography, IconButton, useTheme } from '@mui/material';
-import Brightness4Icon from '@mui/icons-material/Brightness4'; // Ícone da Lua
-import Brightness7Icon from '@mui/icons-material/Brightness7'; // Ícone do Sol
-import { useNavigate } from 'react-router-dom';
+import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import "../style.css";
 
-const BoasVindas = ({ toggleColorMode }) => {
-  const theme = useTheme();
-  const navigate = useNavigate();
+export default function BoasVindas() {
+  const [dark, setDark] = useState(false);
+
+  useEffect(() => {
+    if (dark) {
+      document.body.classList.add("dark");
+    } else {
+      document.body.classList.remove("dark");
+    }
+  }, [dark]);
 
   return (
-    <Box sx={{ 
-      display: 'flex', flexDirection: 'column', alignItems: 'center', 
-      justifyContent: 'center', height: '100vh', bgcolor: 'background.default',
-      position: 'relative' 
-    }}>
-      {/* Botão da Lua no Canto Superior Direito */}
-      <IconButton 
-        onClick={toggleColorMode} 
-        sx={{ position: 'absolute', top: 30, right: 40 }}
-        color="inherit"
-      >
-        {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-      </IconButton>
+    <div>
+      {/* HEADER */}
+      <header className="header">
+        <div className="logo">LOGO</div>
 
-      {/* Espaço do Logo (X) */}
-      <Box sx={{ 
-        width: 350, height: 180, border: '1px solid #ccc', 
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        position: 'relative', mb: 5
-      }}>
-        <Box sx={{ position: 'absolute', width: '100%', height: '1px', bgcolor: '#ccc', transform: 'rotate(27deg)' }} />
-        <Box sx={{ position: 'absolute', width: '100%', height: '1px', bgcolor: '#ccc', transform: 'rotate(-27deg)' }} />
-        <Typography variant="h6" color="text.secondary">LOGO TOOLHUB</Typography>
-      </Box>
+        <nav className="nav">
+          <a href="#inicio">🏠 Início</a>
+          <a href="#sobre">Sobre o Toolhub</a>
+          <a href="#ajuda">Ajuda</a>
+        </nav>
 
-      {/* Botão de Entrar centralizado */}
-      <Button 
-        variant="outlined" 
-        size="large"
-        onClick={() => navigate('/login')}
-        sx={{ 
-          px: 8, py: 1.5, fontSize: '1.5rem', textTransform: 'none',
-          borderRadius: '12px', color: 'text.primary', borderColor: 'text.primary'
-        }}
-      >
-        Entrar
-      </Button>
-    </Box>
+        <div className="right">
+          <button className="theme-btn" onClick={() => setDark(!dark)}>
+            {dark ? "🌙" : "☀️"}
+          </button>
+
+          <Link to="/login" className="btn-header">
+            Acessar Site
+          </Link>
+        </div>
+      </header>
+
+      {/* HERO */}
+      <main className="main">
+        <section className="hero" id="inicio">
+          <h1 className="title">ToolHub</h1>
+          <h2 className="subtitle">
+            Sistema de Gerenciamento de Ferramentas
+          </h2>
+
+          <div className="mock-box">
+            <p>Espaço reservado para o vídeo/pitch do projeto</p>
+          </div>
+
+          <p className="description">
+            Todas as informações que você precisa em um só lugar.
+          </p>
+        </section>
+
+        {/* SOBRE */}
+        <section className="sobre" id="sobre">
+          <h2>Sobre o ToolHub</h2>
+
+          <p>
+            O ToolHub surgiu com o objetivo de centralizar e facilitar o
+            gerenciamento de ferramentas dentro de empresas e equipes. A ideia
+            nasceu da dificuldade comum em controlar empréstimos, localização e
+            disponibilidade de equipamentos no dia a dia.
+          </p>
+
+          <p>
+            Com uma abordagem simples e eficiente, o sistema permite organizar,
+            monitorar e otimizar o uso de recursos, trazendo mais controle,
+            produtividade e redução de perdas.
+          </p>
+
+          <p>
+            Este projeto foi desenvolvido como parte de um Trabalho de Conclusão
+            de Curso (TCC), com foco em resolver problemas reais utilizando
+            tecnologia moderna e acessível.
+          </p>
+        </section>
+
+        {/* AJUDA */}
+        <section className="ajuda" id="ajuda">
+          <h2>Ajuda</h2>
+
+          <div className="faq">
+            <h4>Como acessar o sistema?</h4>
+            <p>
+              Clique em "Acessar Site" no canto superior direito e faça login
+              com suas credenciais.
+            </p>
+
+            <h4>Esqueci minha senha, o que faço?</h4>
+            <p>
+              Utilize a opção "Esqueceu a senha?" na tela de login.
+            </p>
+
+            <h4>O sistema funciona em celular?</h4>
+            <p>
+              Sim! O ToolHub possui versão web e pode ser adaptado para mobile.
+            </p>
+          </div>
+
+          <div className="contato">
+            <h4>Contato</h4>
+            <p>Email: contato@toolhub.com</p>
+            <p>Telefone: (11) 99999-9999</p>
+          </div>
+        </section>
+      </main>
+
+      {/* FOOTER */}
+      <footer className="footer">
+        © 2026 ToolHub. Todos os direitos reservados
+      </footer>
+    </div>
   );
-};
-
-export default BoasVindas;
+}

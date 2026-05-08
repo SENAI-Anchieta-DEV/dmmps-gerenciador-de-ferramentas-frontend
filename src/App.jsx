@@ -54,6 +54,7 @@ function App() {
         <Routes>
           <Route path="/" element={<BoasVindas toggleColorMode={toggleColorMode} />} />
           <Route path="/login" element={<Login toggleColorMode={toggleColorMode} />} />
+          <Route path="/" element={<BoasVindas toggleColorMode={toggleColorMode} />} />
 
           <Route path="/dashboard" element={<Layout toggleColorMode={toggleColorMode} />}>
             <Route index element={<DashboardInicio />} /> 
@@ -62,6 +63,8 @@ function App() {
             <Route path="ocorrencias" element={<Ocorrencias />} />
             <Route path="perfil/cadastrar" element={<CadastrarPerfil />} />
             <Route path="perfil/listar" element={<ListarPerfis />} />
+            
+
           </Route>
 
           <Route path="*" element={<Navigate to="/" />} />
@@ -69,6 +72,11 @@ function App() {
       </BrowserRouter>
     </ThemeProvider>
   );
+
+
+
+
+
 }
 
 export default App;

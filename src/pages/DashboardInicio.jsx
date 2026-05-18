@@ -159,7 +159,7 @@ const DashboardInicio = () => {
           <CardMetrica titulo="Em Manutenção" valor="05" icone={<WarningAmberIcon />} corStatus="#FFB347" progressoSimulado={8} />
         </Grid>
         <Grid item xs={12} sm={6} lg={3}>
-          <CardMetrica titulo="Devoluções Atrasadas" valor="03" icone={<AccessTimeIcon />} corStatus="#FF6961" progressoSimulado={4} />
+          <CardMetrica titulo="Descartes" valor="03" icone={<AccessTimeIcon />} corStatus="#FF6961" progressoSimulado={4} />
         </Grid>
       </Grid>
 

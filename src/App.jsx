@@ -21,10 +21,12 @@ function App() {
       primary: { main: '#14213D' },
       background: {
         default: mode === 'light' ? '#f5f5f5' : '#0A1128', 
-        paper: mode === 'light' ? '#ffffff' : '#14213D',
+        paper: mode === 'light' ? '#ffffff' : '#14213D', // Alterado para branco no light para dar contraste com o fundo #f5f5f5
       },
       text: {
-        primary: mode === 'light' ? '#000000' : '#ffffff',
+        // CORREÇÃO: Alinhado estritamente com a paleta oficial (#14213D no claro e #f5f5f5 no escuro)
+        primary: mode === 'light' ? '#14213D' : '#f5f5f5',
+        secondary: mode === 'light' ? 'rgba(20, 33, 61, 0.7)' : 'rgba(245, 245, 245, 0.7)',
       }
     },
 
@@ -48,14 +50,14 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      {/* O CssBaseline é essencial: ele aplica a fonte no <body> automaticamente */}
       <CssBaseline /> 
       <BrowserRouter>
         <Routes>
+          {/* Rotas Raiz */}
           <Route path="/" element={<BoasVindas toggleColorMode={toggleColorMode} />} />
           <Route path="/login" element={<Login toggleColorMode={toggleColorMode} />} />
-          <Route path="/" element={<BoasVindas toggleColorMode={toggleColorMode} />} />
 
+          {/* Rotas do Painel Administrativo (Aninhadas dentro de /dashboard) */}
           <Route path="/dashboard" element={<Layout toggleColorMode={toggleColorMode} />}>
             <Route index element={<DashboardInicio />} /> 
             <Route path="em-uso" element={<EmUso />} /> 
@@ -63,20 +65,14 @@ function App() {
             <Route path="ocorrencias" element={<Ocorrencias />} />
             <Route path="perfil/cadastrar" element={<CadastrarPerfil />} />
             <Route path="perfil/listar" element={<ListarPerfis />} />
-            
-
           </Route>
 
+          {/* Fallback de segurança para rotas inexistentes */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
   );
-
-
-
-
-
 }
 
 export default App;

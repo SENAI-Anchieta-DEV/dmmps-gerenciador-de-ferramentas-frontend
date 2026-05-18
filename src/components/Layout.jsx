@@ -33,6 +33,7 @@ const Layout = ({ toggleColorMode }) => {
   const theme = useTheme();
   const location = useLocation(); 
   const [notificacoes] = useState(3); 
+  const isLight = theme.palette.mode === 'light';
 
   // Verificadores de Rota
   const isEmUsoPage = location.pathname.includes('em-uso');
@@ -40,7 +41,7 @@ const Layout = ({ toggleColorMode }) => {
   const isCadastrarPerfilPage = location.pathname.includes('perfil/cadastrar');
   const isListarPerfisPage = location.pathname.includes('perfil/listar');
   
-  // AJUSTE: Ocorrências agora também é considerada "Clean Page" para remover o cabeçalho superior
+  const isDashboardHome = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
   const isCleanPage = isCadastrarPerfilPage || isListarPerfisPage || isOcorrenciasPage;
 
   const handleLogout = () => { navigate('/'); };
@@ -94,16 +95,20 @@ const Layout = ({ toggleColorMode }) => {
         component="main" 
         sx={{ 
           flexGrow: 1, 
-          // Padding zero para as páginas "Clean" (Cadastro, Listagem e Ocorrências)
-          p: isCleanPage ? 0 : { xs: 2, md: 5 }, 
+          p: isCleanPage ? 0 : { xs: 2, md: 4 }, // Ajustado para otimizar espaço vertical
           width: `calc(100% - ${drawerWidth}px)`,
-          position: 'relative'
+          position: 'relative',
+          // CORREÇÃO: Padrão FUI injetado na raiz do Main para cobrir a região superior riscada
+          background: isLight 
+            ? `radial-gradient(circle at 1px 1px, rgba(20,33,61,0.06) 1px, transparent 0), linear-gradient(0deg, rgba(20,33,61,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(20,33,61,0.015) 1px, transparent 1px)`
+            : `radial-gradient(circle at 1px 1px, rgba(0,242,255,0.15) 1px, transparent 0), linear-gradient(0deg, rgba(0,242,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,242,255,0.02) 1px, transparent 1px)`,
+          backgroundSize: '40px 40px, 40px 40px, 40px 40px',
         }}
       >
         {!isCleanPage && (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 5, width: '100%', pr: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, width: '100%', pr: 2 }}>
             <Box sx={{ display: 'flex', gap: 1.5 }}> 
-              {!isOcorrenciasPage && (
+              {!isOcorrenciasPage && !isDashboardHome && (
                 <>
                   <Chip icon={<Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#85FF80', ml: 1 }} />} label="Em Uso" variant="outlined" sx={{ borderRadius: '20px', borderColor: 'divider', fontWeight: 600 }} />
                   {!isEmUsoPage && ( 
@@ -115,14 +120,19 @@ const Layout = ({ toggleColorMode }) => {
                 </>
               )}
             </Box>
+            
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Badge badgeContent={notificacoes} color="error" overlap="circular">
                 <IconButton color="inherit"><NotificationsIcon sx={{ fontSize: '1.6rem' }} /></IconButton>
               </Badge>
-              <Box sx={{ display: 'flex', alignItems: 'center', border: '1px solid', borderColor: 'divider', borderRadius: '24px', px: 2, bgcolor: 'background.paper', width: '260px' }}>
-                <InputBase placeholder="Buscar ferramenta..." sx={{ ml: 1, flex: 1, p: '6px 0', fontSize: '0.85rem', fontFamily: 'Poppins' }} />
-                <IconButton size="small"><SearchIcon sx={{ fontSize: '1.1rem' }} /></IconButton>
-              </Box>
+              
+              {!isDashboardHome && (
+                <Box sx={{ display: 'flex', alignItems: 'center', border: '1px solid', borderColor: 'divider', borderRadius: '24px', px: 2, bgcolor: 'background.paper', width: '260px' }}>
+                  <InputBase placeholder="Buscar ferramenta..." sx={{ ml: 1, flex: 1, p: '6px 0', fontSize: '0.85rem', fontFamily: 'Poppins' }} />
+                  <IconButton size="small"><SearchIcon sx={{ fontSize: '1.1rem' }} /></IconButton>
+                </Box>
+              )}
+              
               <IconButton onClick={toggleColorMode} sx={{ color: 'text.primary', ml: 1, bgcolor: 'action.hover', '&:hover': { bgcolor: 'action.selected' } }}>
                 {theme.palette.mode === 'dark' ? <Brightness7Icon sx={{ fontSize: '1.5rem' }} /> : <Brightness4Icon sx={{ fontSize: '1.5rem' }} />}
               </IconButton>

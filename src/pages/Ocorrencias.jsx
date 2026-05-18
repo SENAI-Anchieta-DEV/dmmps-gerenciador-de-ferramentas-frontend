@@ -134,7 +134,7 @@ const Ocorrencias = () => {
       minHeight: '100vh', 
       bgcolor: 'background.default', 
       position: 'relative',
-      pt: 8, // Espaço para não ficar colado no topo
+      pt: 8, 
       px: { xs: 3, md: 6 },
       pb: 5
     }}>
@@ -176,7 +176,7 @@ const Ocorrencias = () => {
         </Button>
       </Box>
 
-      {/* Barra de Pesquisa Local */}
+      {/* barra de pesquisa */}
       <Box sx={{ mb: 4, display: 'flex', gap: 2 }}>
         <TextField 
           fullWidth 

@@ -24,11 +24,11 @@ const Login = ({ toggleColorMode }) => {
     setErro('');
     setLoading(true);
 
-    const controller = new AbortController(); //
-    const timeoutId = setTimeout(() => controller.abort(), 60000); //
+    const controller = new AbortController(); 
+    const timeoutId = setTimeout(() => controller.abort(), 60000); 
 
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080'; //
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080'; 
       const response = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -40,15 +40,20 @@ const Login = ({ toggleColorMode }) => {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem('token', data.token); //
+        
+        // 🔐 AQUI ESTÁ A VIRADA DE CHAVE AUTOMÁTICA:
+        // Salva o token do backend e o e-mail digitado na chave 'user' para as travas de rota lerem!
+        localStorage.setItem('token', data.token); 
+        localStorage.setItem('user', email); 
+        
         navigate('/dashboard'); 
       } else {
         const errorData = await response.json();
         setErro(errorData.detail || 'Email ou senha incorretos.');
       }
     } catch (err) {
-      if (err.name === 'AbortError') { //
-        setErro('O servidor está demorando muito para responder (Cold Start). Tente novamente em instantes.');
+      if (err.name === 'AbortError') { 
+        setErro('O servidor está demorando muito para responder (Cold Start). Tente novamente in instantes.');
       } else {
         setErro('Não foi possível conectar ao servidor. Verifique sua conexão.');
       }
@@ -109,7 +114,7 @@ const Login = ({ toggleColorMode }) => {
               </Box>
             )}
 
-            {/* CORREÇÃO DAS BORDAS: Agora usando notchedOutline para garantir visibilidade */}
+            {/* TEXTFIELDS MANTIDOS SEM ALTERAÇÃO VISUAL */}
             <TextField
               fullWidth
               placeholder="Email"
@@ -173,7 +178,7 @@ const Login = ({ toggleColorMode }) => {
                 variant="caption" 
                 type="button" 
                 sx={{ 
-                  color: theme.palette.mode === 'dark' ? '#f5f5f5' : 'primary.main', // CORREÇÃO DO LINK NO DARK MODE
+                  color: theme.palette.mode === 'dark' ? '#f5f5f5' : 'primary.main', 
                   fontWeight: 700, 
                   textDecoration: 'none',
                   '&:hover': { textDecoration: 'underline' }
@@ -183,7 +188,6 @@ const Login = ({ toggleColorMode }) => {
               </Link>
             </Box>
 
-            {/* BOTÃO COM HOVER RIPPLE RADIAL E ALTO CONTRASTE */}
             <Button 
               type="submit"
               fullWidth
@@ -191,7 +195,7 @@ const Login = ({ toggleColorMode }) => {
               disabled={loading}
               sx={{ 
                 py: 2, borderRadius: '14px', fontWeight: 800,
-                bgcolor: theme.palette.mode === 'light' ? '#14213D' : '#f5f5f5', // CIANO NO DARK MODE
+                bgcolor: theme.palette.mode === 'light' ? '#14213D' : '#f5f5f5', 
                 color: theme.palette.mode === 'light' ? 'white' : '#14213D',
                 transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                 position: 'relative',
@@ -200,7 +204,6 @@ const Login = ({ toggleColorMode }) => {
                   bgcolor: theme.palette.mode === 'light' ? '#2b3a55' : '#70f9ff',
                   transform: 'translateY(-3px)',
                   boxShadow: theme.palette.mode === 'dark' ? '0 0 25px rgba(0, 242, 255, 0.5)' : '0 10px 30px rgba(20, 33, 61, 0.3)',
-                  // EFEITO DE ONDA RADIAL NO HOVER
                   '&::after': {
                     content: '""',
                     position: 'absolute',

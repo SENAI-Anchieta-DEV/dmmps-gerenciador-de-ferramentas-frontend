@@ -9,6 +9,13 @@ import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
 
 import API_BASE_URL from '../apiConfig';
 
+//Dados Mockados no caso que a conexão com o servidor não esteja funcionando
+const DADOS_MOCK_TESTE = [
+  { nomeFerramenta: 'Parafusadeira Bosch', codigoPatrimonio: '#ID-1106', dataRetirada: '2026-05-18T08:30:00', origem: 'Gaveta: 07 / A', nomeUsuario: 'Ricardo Santos' },
+  { nomeFerramenta: 'Chave de Impacto Makita', codigoPatrimonio: '#ID-3215', dataRetirada: '2026-05-18T09:45:00', origem: 'Gaveta: 05 / C', nomeUsuario: 'Carlos Lima' },
+  { nomeFerramenta: 'Multímetro Digital Fluke', codigoPatrimonio: '#ID-2343', dataRetirada: '2026-05-18T12:15:00', origem: 'Gaveta: 04 / B', nomeUsuario: 'Ana Oliveira' },
+];
+
 const ToolCardEmUso = ({ ferramenta, onVerDetalhes }) => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
@@ -104,6 +111,7 @@ const EmUso = () => {
 
   const [ferramentas, setFerramentas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [usandoMock, setUsandoMock] = useState(false);
   const [erro, setErro] = useState('');
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -125,7 +133,7 @@ const EmUso = () => {
   useEffect(() => {
     const fetchFerramentasEmUso = async () => {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
 
       try {
         const response = await fetch(`${API_BASE_URL}/emprestimos`, {
@@ -142,11 +150,18 @@ const EmUso = () => {
         if (response.ok) {
           const data = await response.json();
           setFerramentas(data);
+          setUsandoMock(false);
+          setErro('');
         } else {
-          setErro(`Erro ${response.status}: Falha ao sincronizar dados do banco.`);
+          // Se responder com erro (ex: token expirou), ativa o mock de segurança
+          setFerramentas(DADOS_MOCK_TESTE);
+          setUsandoMock(true);
+          setErro(`Erro ${response.status}: Exibindo dados de simulação.`);
         }
       } catch (err) {
-        setErro('Não foi possível conectar ao servidor da ToolHub.');
+        // Se o IntelliJ estiver desligado, carrega os mocks e avisa com um banner azul informativo
+        setFerramentas(DADOS_MOCK_TESTE);
+        setUsandoMock(true);
       }
       setLoading(false);
     };
@@ -180,7 +195,14 @@ const EmUso = () => {
         Em Uso
       </Typography>
 
-      {erro && <Alert severity="error" sx={{ mb: 3, borderRadius: '12px' }}>{erro}</Alert>}
+      {/* BANNER REATIVADO: Só aparece quando o backend cai */}
+      {usandoMock && (
+        <Alert severity="info" sx={{ mb: 3, borderRadius: '12px', fontFamily: 'Poppins', fontWeight: 500 }}>
+          <b>Modo Sandbox Ativo:</b> Conexão com o servidor indisponível. Exibindo dados locais para testes de interface.
+        </Alert>
+      )}
+
+      {erro && !usandoMock && <Alert severity="error" sx={{ mb: 3, borderRadius: '12px' }}>{erro}</Alert>}
       
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 3 }}>
         {ferramentasFiltradas.map((f, i) => (
@@ -241,7 +263,7 @@ const EmUso = () => {
                 </Grid>
 
                 <Grid item xs={6} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1 }}>
-                  <AccessTimeIcon sx={{ color: 'text.secondary' }} />
+                  <AccessTimeIcon hover={{ color: 'text.secondary' }} />
                   <Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>Retirada</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>

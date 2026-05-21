@@ -1,129 +1,317 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Box, 
   Typography, 
-  TextField, 
+  Paper, 
   Button, 
+  TextField, 
+  InputAdornment, 
+  IconButton, 
   Avatar, 
   useTheme, 
-  Stack, 
   Container, 
-  IconButton 
+  Grid, 
+  MenuItem,
+  CircularProgress
 } from '@mui/material';
 import { useOutletContext } from 'react-router-dom';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import EmailIcon from '@mui/icons-material/Email';
+import BadgeIcon from '@mui/icons-material/Badge';
+import LockIcon from '@mui/icons-material/Lock';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+
+import API_BASE_URL from '../apiConfig';
 
 const CadastrarPerfil = () => {
   const theme = useTheme();
-  const toggleColorMode = useOutletContext(); 
+  const isLight = theme.palette.mode === 'light';
+  const { toggleColorMode } = useOutletContext();
 
-  // Estilo dos inputs conforme discussões anteriores
-  const inputStyle = {
-    flexGrow: 1,
-    '& .MuiOutlinedInput-root': {
-      borderRadius: '50px', 
-      backgroundColor: theme.palette.mode === 'light' ? '#E0E0E0' : '#333333',
-      fontFamily: 'Poppins, sans-serif',
-      '& fieldset': { border: 'none' }, 
-    },
-    '& .MuiInputBase-input': { 
-      padding: '10px 24px', 
-      fontSize: '0.8rem',
-      fontFamily: 'Poppins, sans-serif',
+  const [formData, setFormData] = useState({
+    nome: '',
+    email: '',
+    senha: '',
+    registro: '',
+    perfil: '' 
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [cadastroLoading, setCadastroLoading] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setCadastroLoading(true);
+
+    try {
+      // 🎯 AJUSTE DA CIRURGIA: Adicionado /api/v1 para espelhar perfeitamente a rota do Postman
+      const response = await fetch(`${API_BASE_URL}/api/v1/usuarios`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${localStorage.getItem('token')}`, 
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        alert('Usuário cadastrado com sucesso! 🚀');
+        setFormData({ nome: '', email: '', senha: '', registro: '', perfil: '' });
+      } else {
+        alert(`Erro ${response.status}: Não foi possível realizar o cadastro.`);
+      }
+    } catch (err) {
+      alert('Falha na comunicação com o servidor da ToolHub.');
+    } finally {
+      setCadastroLoading(false);
     }
   };
 
-  const labelStyle = {
-    fontFamily: 'Poppins, sans-serif',
-    fontWeight: 700,
-    color: 'text.primary',
-    fontSize: '1.05rem',
-    whiteSpace: 'nowrap', 
-    minWidth: '180px',    
+  const inputStyles = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '12px',
+      backgroundColor: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
+      fontFamily: 'Poppins, sans-serif',
+      transition: 'all 0.3s ease',
+      '& fieldset': { 
+        border: '1px solid',
+        borderColor: isLight ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.08)' 
+      },
+      '&:hover fieldset': {
+        borderColor: isLight ? 'primary.main' : '#00f2ff',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: isLight ? 'primary.main' : '#00f2ff',
+      },
+      '& input': {
+        color: isLight ? 'text.primary' : '#ffffff',
+      }
+    },
+    '& .MuiInputLabel-root': { 
+      fontFamily: 'Poppins, sans-serif',
+      color: isLight ? 'text.secondary' : 'rgba(255, 255, 255, 0.6)',
+      '&.Mui-focused': { color: isLight ? 'primary.main' : '#00f2ff' }
+    },
+    '& .MuiSelect-select': {
+      display: 'flex',
+      alignItems: 'center',
+      color: isLight ? 'text.primary' : '#ffffff'
+    }
   };
 
   return (
     <Box sx={{ 
       width: '100%', 
-      height: '100vh', 
-      position: 'relative',
-      overflow: 'hidden',
-      bgcolor: 'background.default'
+      minHeight: '100vh', 
+      position: 'relative', 
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      py: 6,
+      bgcolor: 'background.default',
+      backgroundImage: isLight 
+        ? 'radial-gradient(rgba(0, 0, 0, 0.1) 1.5px, transparent 1.5px)' 
+        : 'radial-gradient(rgba(0, 242, 255, 0.15) 1.2px, transparent 1.2px)',
+      backgroundSize: '30px 30px',
+      overflowX: 'hidden'
     }}>
       
-      {/* --- Waves (Conforme feito no figma) --- */}
-      <Box sx={{ 
-        position: 'absolute', 
-        bottom: -20, 
-        right: -20, 
-        zIndex: 0, 
-        pointerEvents: 'none',
-        opacity: theme.palette.mode === 'light' ? 0.7 : 0.2,
-        color: theme.palette.mode === 'light' ? '#000' : '#FFF'
-      }}>
-        <svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* Camada de onda 1 */}
-          <path d="M600 150C500 120 450 250 300 200C150 150 100 350 0 300V400H600V" stroke="currentColor" strokeWidth="1.5" />
-          {/* Camada de onda 2 */}
-          <path d="M600 220C520 190 480 300 350 260C220 220 150 380 50 340V400H600V220Z" stroke="currentColor" strokeWidth="1.5" />
-          {/* Camada de onda 3 */}
-          <path d="M600 280C540 260 510 340 400 320C290 300 220 400 120 370V400H600V280Z" stroke="currentColor" strokeWidth="1.5" />
-        </svg>
-      </Box>
-
-      {/* Cabeçalho Cinza */}
-      <Box sx={{ 
-        bgcolor: theme.palette.mode === 'light' ? '#D9D9D9' : '#444444', 
-        height: '200px', width: '100%', position: 'absolute', top: 0, left: 0, zIndex: 1,
-        display: 'flex', justifyContent: 'flex-end', p: 3
-      }}>
-        <IconButton onClick={toggleColorMode} sx={{ color: 'text.primary', alignSelf: 'flex-start' }}>
-          {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+      {/* Alternador de Tema */}
+      <Box sx={{ position: 'absolute', top: 24, right: 32, zIndex: 10 }}>
+        <IconButton onClick={() => toggleColorMode?.()} sx={{ color: 'text.primary' }}>
+          {isLight ? <Brightness4Icon /> : <Brightness7Icon />}
         </IconButton>
       </Box>
 
-      {/* Conteúdo Principal */}
-      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2, pt: 8, px: 6 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-          
-          <Typography variant="h4" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, mb: 5 }}>
-            Cadastrar Perfil
-          </Typography>
+      <Container maxWidth="md">
+        <Paper 
+          component="form"
+          onSubmit={handleSubmit}
+          elevation={0} 
+          sx={{ 
+            p: { xs: 4, md: 8 }, 
+            borderRadius: '24px', 
+            border: '1px solid', 
+            borderColor: isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.05)', 
+            bgcolor: isLight ? '#f5f5f5' : '#14213D',
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: isLight ? '0 10px 30px rgba(0,0,0,0.03)' : '0 15px 35px rgba(0,0,0,0.2)'
+          }}
+        >
+          <Grid container spacing={4}>
+            
+            {/* Título da Página */}
+            <Grid item xs={12}>
+              <Typography variant="h4" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, color: 'text.primary' }}>
+                Cadastrar Perfil
+              </Typography>
+            </Grid>
 
-          <Avatar sx={{ 
-            width: 150, height: 150, bgcolor: '#F5F5F5', border: '2px solid #000', mb: 6 
-          }}>
-            <AccountCircleIcon sx={{ fontSize: 130, color: '#000' }} />
-          </Avatar>
+            {/* Ícone da Foto Centralizado */}
+            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mt: 1, mb: 1 }}>
+              <Avatar sx={{ 
+                width: 130, 
+                height: 130, 
+                bgcolor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255, 255, 255, 0.03)', 
+                border: '2px solid', 
+                borderColor: isLight ? 'primary.main' : '#00f2ff',
+              }}>
+                <AccountCircleIcon sx={{ fontSize: 115, color: isLight ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.5)' }} />
+              </Avatar>
+            </Grid>
 
-          <Stack spacing={2.5} sx={{ width: '100%', maxWidth: '750px' }}>
-            {["Nome Completo", "Email", "Data de Nascimento", "Cargo", "ID"].map((label) => (
-              <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography sx={labelStyle}>{label}:</Typography>
-                <TextField fullWidth variant="outlined" sx={inputStyle} />
-              </Box>
-            ))}
+            {/* Nome Completo */}
+            <Grid item xs={12}>
+              <TextField 
+                required 
+                fullWidth 
+                label="Nome Completo *" 
+                name="nome" 
+                value={formData.nome} 
+                onChange={handleInputChange} 
+                InputProps={{ 
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <AccountCircleIcon sx={{ color: isLight ? 'primary.main' : '#00f2ff', fontSize: '1.2rem' }} />
+                    </InputAdornment>
+                  ) 
+                }} 
+                sx={inputStyles} 
+              />
+            </Grid>
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 1.5 }}>
-              <Button 
-                variant="contained" 
-                startIcon={<AddCircleOutlineIcon />}
-                sx={{ 
-                  borderRadius: '12px', textTransform: 'none', fontWeight: 700, px: 8, py: 1.6,
-                  fontFamily: 'Poppins, sans-serif', boxShadow: 'none',
-                  bgcolor: theme.palette.mode === 'light' ? '#1a1a1a' : '#ffffff',
-                  color: theme.palette.mode === 'light' ? '#ffffff' : '#1a1a1a',
-                  '&:hover': { bgcolor: theme.palette.mode === 'light' ? '#333333' : '#e0e0e0' }
+            {/* Demais campos abaixo do nome */}
+            <Grid item xs={12} md={6}>
+              <TextField 
+                required 
+                fullWidth 
+                type="email"
+                label="E-mail *" 
+                name="email" 
+                value={formData.email} 
+                onChange={handleInputChange} 
+                InputProps={{ 
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon sx={{ color: isLight ? 'primary.main' : '#00f2ff', fontSize: '1.2rem' }} />
+                    </InputAdornment>
+                  ) 
+                }} 
+                sx={inputStyles} 
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField 
+                required 
+                fullWidth 
+                type={showPassword ? 'text' : 'password'}
+                label="Senha *" 
+                name="senha" 
+                value={formData.senha} 
+                onChange={handleInputChange} 
+                InputProps={{ 
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon sx={{ color: isLight ? 'primary.main' : '#00f2ff', fontSize: '1.2rem' }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" sx={{ color: 'text.secondary' }}>
+                        {showPassword ? <VisibilityOff sx={{ fontSize: '1.2rem' }} /> : <Visibility sx={{ fontSize: '1.2rem' }} />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }} 
+                sx={inputStyles} 
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField 
+                required 
+                fullWidth 
+                label="Registro *" 
+                name="registro" 
+                value={formData.registro} 
+                onChange={handleInputChange} 
+                InputProps={{ 
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BadgeIcon sx={{ color: isLight ? 'primary.main' : '#00f2ff', fontSize: '1.2rem' }} />
+                    </InputAdornment>
+                  ) 
+                }} 
+                sx={inputStyles} 
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField 
+                select 
+                required
+                fullWidth 
+                label="Perfil de Acesso *" 
+                name="perfil" 
+                value={formData.perfil} 
+                onChange={handleInputChange}
+                InputProps={{ 
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <AdminPanelSettingsIcon sx={{ color: isLight ? 'primary.main' : '#00f2ff', fontSize: '1.2rem', mr: 1 }} />
+                    </InputAdornment>
+                  ) 
                 }}
+                sx={inputStyles}
               >
-                Criar Usuário
-              </Button>
-            </Box>
-          </Stack>
-        </Box>
+                <MenuItem value="ADMIN" sx={{ fontFamily: 'Poppins, sans-serif' }}>Administrador</MenuItem>
+                <MenuItem value="ALMOXARIFE" sx={{ fontFamily: 'Poppins, sans-serif' }}>Almoxarife</MenuItem>
+                <MenuItem value="TECNICO" sx={{ fontFamily: 'Poppins, sans-serif' }}>Técnico</MenuItem>
+              </TextField>
+            </Grid>
+
+            {/* Botão com loading */}
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 0}}>
+                <Button 
+                  type="submit"
+                  variant="contained" 
+                  disabled={cadastroLoading}
+                  startIcon={cadastroLoading ? <CircularProgress size={20} color="inherit" /> : <PersonAddIcon />}
+                  sx={{ 
+                    borderRadius: '14px', 
+                    textTransform: 'none', 
+                    fontWeight: 700, 
+                    px: 7, 
+                    py: 1.6,
+                    fontSize: '0.95rem',
+                    fontFamily: 'Poppins, sans-serif', 
+                    bgcolor: isLight ? '#14213D' : '#00f2ff',
+                    color: isLight ? '#ffffff' : '#14213D',
+                    '&:hover': { 
+                      bgcolor: isLight ? '#2b3a55' : '#70f9ff',
+                    }
+                  }}
+                >
+                  {cadastroLoading ? 'Registrando...' : 'Criar Usuário'}
+                </Button>
+              </Box>
+            </Grid>
+
+          </Grid>
+        </Paper>
       </Container>
     </Box>
   );

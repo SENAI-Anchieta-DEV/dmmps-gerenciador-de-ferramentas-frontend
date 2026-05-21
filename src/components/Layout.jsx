@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // 🌟 Atualizado: Incluído useEffect
 import { Box, Drawer, Typography, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Avatar, Divider, InputBase, Badge, IconButton, Chip, useTheme } from '@mui/material';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 
@@ -14,6 +14,8 @@ import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import PeopleIcon from '@mui/icons-material/People'; 
+
+import API_BASE_URL from '../apiConfig'; // Puxa a url do seu back-end automaticamente
 
 const drawerWidth = 260;
 
@@ -32,8 +34,46 @@ const Layout = ({ toggleColorMode }) => {
   const theme = useTheme();
   const location = useLocation(); 
   const [notificacoes] = useState(3); 
-  const [searchTerm, setSearchTerm] = useState(''); // NOVO: Estado global da busca
+  const [searchTerm, setSearchTerm] = useState(''); 
   const isLight = theme.palette.mode === 'light';
+
+  // 🟡 ESTADOS REATIVOS DO PERFIL DO USUÁRIO
+  const [usuarioNome, setUsuarioNome] = useState('Usuário');
+  const [usuarioRegistro, setUsuarioRegistro] = useState('#000000');
+
+  // 🔄 CARREGAMENTO LIMPO E PROFISSIONAL (ROTA DE PERFIL PRÓPRIO /ME)
+  useEffect(() => {
+    const carregarPerfilUsuario = async () => {
+      const token = localStorage.getItem('token');
+
+      if (!token) return;
+
+      try {
+        // Bate na nova rota individual liberada para todos os perfis autenticados
+        const response = await fetch(`${API_BASE_URL}/api/v1/usuarios/me`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const meuPerfil = await response.json();
+          
+          // Alimenta o menu lateral com os dados reais vindos da entidade do banco
+          if (meuPerfil.nome) setUsuarioNome(meuPerfil.nome);
+          if (meuPerfil.registro) setUsuarioRegistro(meuPerfil.registro);
+        } else {
+          console.error(`Erro ${response.status} ao carregar perfil do banco.`);
+        }
+      } catch (err) {
+        console.error("Falha ao conectar na rota /me do back-end:", err);
+      }
+    };
+
+    carregarPerfilUsuario();
+  }, []);
 
   const isEmUsoPage = location.pathname.includes('em-uso');
   const isOcorrenciasPage = location.pathname.includes('ocorrencias'); 
@@ -43,7 +83,16 @@ const Layout = ({ toggleColorMode }) => {
   const isDashboardHome = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
   const isCleanPage = isCadastrarPerfilPage || isListarPerfisPage || isOcorrenciasPage;
 
-  const handleLogout = () => { navigate('/'); };
+  const handleLogout = () => { 
+    localStorage.clear(); // Limpeza preventiva na saída do sistema
+    navigate('/'); 
+  };
+
+  // Função auxiliar para renderizar a inicial dinâmica do avatar
+  const obtenerInicial = (nome) => {
+    if (!nome || nome === 'Usuário') return 'U';
+    return nome.trim().charAt(0).toUpperCase();
+  };
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -55,11 +104,18 @@ const Layout = ({ toggleColorMode }) => {
             <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'Poppins' }}>LOGO TOOLHUB</Typography>
           </Box>
 
+          {/* 🟡 SEÇÃO PERFIL DO USUÁRIO INTEGRADA COM SUCESSO AO BANCO */}
           <Box sx={{ display: 'flex', alignItems: 'center', px: 3, py: 1, gap: 2, flexShrink: 0 }}>
-            <Avatar sx={{ width: 64, height: 64, bgcolor: 'primary.main', border: '2px solid', borderColor: 'divider' }}>U</Avatar>
+            <Avatar sx={{ width: 64, height: 64, bgcolor: 'primary.main', border: '2px solid', borderColor: 'divider', fontWeight: 700, fontSize: '1.4rem', fontFamily: 'Poppins' }}>
+              {obtenerInicial(usuarioNome)}
+            </Avatar>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.2, color: 'text.primary' }}>Usuário</Typography>
-              <Typography variant="body2" sx={{ fontFamily: 'JetBrains Mono', color: 'text.secondary' }}>#110605</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.2, color: 'text.primary', fontFamily: 'Poppins', fontSize: '1rem' }}>
+                {usuarioNome}
+              </Typography>
+              <Typography variant="body2" sx={{ fontFamily: 'JetBrains Mono', color: 'text.secondary', fontSize: '0.8rem', mt: 0.5 }}>
+                {usuarioRegistro.startsWith('#') ? usuarioRegistro : `#${usuarioRegistro}`}
+              </Typography>
             </Box>
           </Box>
 
@@ -122,7 +178,6 @@ const Layout = ({ toggleColorMode }) => {
               
               {!isDashboardHome && (
                 <Box sx={{ display: 'flex', alignItems: 'center', border: '1px solid', borderColor: 'divider', borderRadius: '24px', px: 2, bgcolor: 'background.paper', width: '260px' }}>
-                  {/* CORREÇÃO: Input ligado ao estado de busca controlado */}
                   <InputBase 
                     placeholder="Buscar ferramenta..." 
                     value={searchTerm}
@@ -141,7 +196,6 @@ const Layout = ({ toggleColorMode }) => {
         )}
 
         <Box sx={{ width: '100%', height: '100%' }}>
-          {/* CORREÇÃO: Enviando o searchTerm no contexto do Outlet */}
           <Outlet context={{ toggleColorMode, searchTerm }} /> 
         </Box>
       </Box>

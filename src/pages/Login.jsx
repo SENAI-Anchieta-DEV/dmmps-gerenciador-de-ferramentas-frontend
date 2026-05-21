@@ -45,6 +45,10 @@ const Login = ({ toggleColorMode }) => {
         // Salva o token do backend e o e-mail digitado na chave 'user' para as travas de rota lerem!
         localStorage.setItem('token', data.token); 
         localStorage.setItem('user', email); 
+        localStorage.setItem('userId', data.id);
+
+        localStorage.setItem('usuario_nome', data.nome);
+        localStorage.setItem('usuario_registro', data.registro);
         
         navigate('/dashboard'); 
       } else {

@@ -1,43 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Button, Avatar, useTheme, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Grid, Divider, Stack } from '@mui/material';
+import { Box, Typography, Paper, Button, Avatar, useTheme, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Grid, Divider, Stack, IconButton, Tooltip, TextField } from '@mui/material';
 import { useOutletContext } from 'react-router-dom';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import PersonIcon from '@mui/icons-material/Person';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
+import AssignmentReturnedIcon from '@mui/icons-material/AssignmentReturned'; // 🌟 Ícone de devolução
 
 import API_BASE_URL from '../apiConfig';
 
-//Dados Mockados no caso que a conexão com o servidor não esteja funcionando
 const DADOS_MOCK_TESTE = [
-  { nomeFerramenta: 'Parafusadeira Bosch', codigoPatrimonio: '#ID-1106', dataRetirada: '2026-05-18T08:30:00', origem: 'Gaveta: 07 / A', nomeUsuario: 'Ricardo Santos' },
-  { nomeFerramenta: 'Chave de Impacto Makita', codigoPatrimonio: '#ID-3215', dataRetirada: '2026-05-18T09:45:00', origem: 'Gaveta: 05 / C', nomeUsuario: 'Carlos Lima' },
-  { nomeFerramenta: 'Multímetro Digital Fluke', codigoPatrimonio: '#ID-2343', dataRetirada: '2026-05-18T12:15:00', origem: 'Gaveta: 04 / B', nomeUsuario: 'Ana Oliveira' },
+  { id: 'mock-1', nomeFerramenta: 'Parafusadeira Bosch', codigoPatrimonio: '#ID-1106', dataRetirada: '2026-05-18T08:30:00', origem: 'Gaveta: 07 / A', nomeUsuario: 'Ricardo Santos' },
+  { id: 'mock-2', nomeFerramenta: 'Chave de Impacto Makita', codigoPatrimonio: '#ID-3215', dataRetirada: '2026-05-18T09:45:00', origem: 'Gaveta: 05 / C', nomeUsuario: 'Carlos Lima' },
+  { id: 'mock-3', nomeFerramenta: 'Multímetro Digital Fluke', codigoPatrimonio: '#ID-2343', dataRetirada: '2026-05-18T12:15:00', origem: 'Gaveta: 04 / B', nomeUsuario: 'Ana Oliveira' },
 ];
 
-const ToolCardEmUso = ({ ferramenta, onVerDetalhes }) => {
+// --- COMPONENTE DO CARD ATUALIZADO COM BOTÃO DE DEVOLUÇÃO ---
+const ToolCardEmUso = ({ ferramenta, onVerDetalhes, onAcionarDevolucao }) => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
 
-  const nome = ferramenta.nomeFerramenta || ferramenta.nome || 'Ferramenta Sem Nome';
-  const codigo = ferramenta.codigoPatrimonio || ferramenta.id || '#ID-0000';
-  const origem = ferramenta.origem || 'Almoxarifado Central';
+  // O back-end mapeia a ferramenta dentro do objeto de Empréstimo
+  const nome = ferramenta.ferramenta?.nome || ferramenta.nomeFerramenta || 'Ferramenta Sem Nome';
+  const codigo = ferramenta.ferramenta?.codigoPatrimonio || ferramenta.codigoPatrimonio || '#ID-0000';
+  const origem = ferramenta.ferramenta?.gavetaLocalizacao || ferramenta.origem || 'Almoxarifado Central';
 
   const extrairHora = (isoString) => {
     if (!isoString) return '00h00';
     try {
       const partes = isoString.split('T');
-      if (partes.length > 1) {
-        return partes[1].substring(0, 5).replace(':', 'h');
-      }
+      if (partes.length > 1) return partes[1].substring(0, 5).replace(':', 'h');
     } catch (e) {
       return '00h00';
     }
     return '00h00';
   };
 
-  const horario = ferramenta.dataRetirada ? extrairHora(ferramenta.dataRetirada) : (ferramenta.horario || '00h00');
+  const horario = ferramenta.dataRetirada ? extrairHora(ferramenta.dataRetirada) : '00h00';
 
   return (
     <Paper 
@@ -46,37 +46,49 @@ const ToolCardEmUso = ({ ferramenta, onVerDetalhes }) => {
         p: 2.5, 
         borderRadius: '20px', 
         border: '1px solid',
-        borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)',
+        borderColor: '#FFB347', // Bordinha Laranja Oficial de Em Uso
         bgcolor: 'background.paper',
         backdropFilter: 'blur(10px)',
         display: 'flex',
         flexDirection: 'column',
         gap: 2,
         height: '210px',
+        position: 'relative',
         transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease',
         '&:hover': { 
           transform: 'translateY(-5px)',
-          boxShadow: isLight ? '0 12px 30px rgba(20, 33, 61, 0.06)' : '0 0 25px rgba(0, 242, 255, 0.15)',
-          borderColor: isLight ? 'primary.main' : '#00f2ff',
-          cursor: 'pointer'
+          boxShadow: isLight ? '0 12px 30px rgba(255, 179, 71, 0.2)' : '0 0 25px rgba(255, 179, 71, 0.25)',
         }
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Avatar sx={{ bgcolor: `${isLight ? '#14213D' : '#00f2ff'}15`, color: isLight ? '#14213D' : '#00f2ff', border: '1px solid', borderColor: isLight ? 'divider' : 'rgba(0, 242, 255, 0.2)', width: 48, height: 48 }}>
+        <Avatar sx={{ bgcolor: 'rgba(255, 179, 71, 0.15)', color: '#FFB347', border: '1px solid rgba(255, 179, 71, 0.3)', width: 48, height: 48 }}>
           <ConstructionIcon />
         </Avatar>
 
-        <Box sx={{ flexGrow: 1, ml: 2 }}>
+        <Box sx={{ flexGrow: 1, ml: 2, pr: 5 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: 'text.primary', fontFamily: 'Poppins' }}>
             {nome}
           </Typography>
-          <Typography variant="body2" sx={{ fontFamily: 'JetBrains Mono', color: 'text.secondary', fontSize: '0.75rem', fontWeight: 500 }}>
+          <Typography variant="body2" sx={{ fontFamily: '"JetBrains Mono", monospace', color: 'text.secondary', fontSize: '0.75rem', fontWeight: 600, mt: 0.5 }}>
             {codigo}
           </Typography>
         </Box>
 
-        <QrCode2Icon sx={{ color: 'text.primary', opacity: 0.8, fontSize: '2.2rem' }} />
+        {/* 🌟 BOTÃO FLUTUANTE DE DEVOLUÇÃO OPERACIONAL */}
+        <Box sx={{ position: 'absolute', top: 15, right: 15 }}>
+          <Tooltip title="Devolver Ferramenta">
+            <IconButton 
+              onClick={(e) => {
+                e.stopPropagation();
+                onAcionarDevolucao(ferramenta);
+              }}
+              sx={{ color: '#FFB347', '&:hover': { transform: 'scale(1.15)', bgcolor: 'action.hover' } }}
+            >
+              <AssignmentReturnedIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
 
       <Box>
@@ -97,12 +109,13 @@ const ToolCardEmUso = ({ ferramenta, onVerDetalhes }) => {
         >
           Ver mais detalhes
         </Button>
-        <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: '#85FF80', boxShadow: '0 0 12px #85FF80, 0 0 4px #85FF80', border: '2px solid', borderColor: 'background.paper' }} />
+        <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: '#FFB347', boxShadow: '0 0 10px #FFB347', border: '2px solid', borderColor: 'background.paper' }} />
       </Box>
     </Paper>
   );
 };
 
+// --- COMPONENTE PRINCIPAL ---
 const EmUso = () => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
@@ -114,71 +127,119 @@ const EmUso = () => {
   const [usandoMock, setUsandoMock] = useState(false);
   const [erro, setErro] = useState('');
 
+  // Estados dos Modais
   const [modalOpen, setModalOpen] = useState(false);
   const [toolDetalhada, setToolDetalhada] = useState(null);
+  const [devolucaoModalOpen, setDevolucaoModalOpen] = useState(false);
+  const [emprestimoParaDevolver, setEmprestimoParaDevolver] = useState(null);
+  const [devolucaoLoading, setDevolucaoLoading] = useState(false);
+  
+  // 🌟 NOVO ESTADO OPERACIONAL PARA COMPATIBILIDADE COM O POSTMAN (RF12 / RF13)
+  const [estadoConservacao, setEstadoConservacao] = useState('BOM_ESTADO');
 
   const extrairHora = (isoString) => {
     if (!isoString) return '00h00';
     try {
       const partes = isoString.split('T');
-      if (partes.length > 1) {
-        return partes[1].substring(0, 5).replace(':', 'h');
-      }
+      if (partes.length > 1) return partes[1].substring(0, 5).replace(':', 'h');
     } catch (e) {
       return '00h00';
     }
     return '00h00';
   };
 
-  useEffect(() => {
-    const fetchFerramentasEmUso = async () => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+  // 🔄 BUSCAR EMPRÉSTIMOS REALINHADO COM AS PERMISSÕES
+  const fetchFerramentasEmUso = async () => {
+    setLoading(true);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-      try {
-        const response = await fetch(`${API_BASE_URL}/emprestimos`, {
-          method: 'GET',
-          headers: { 
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json' 
-          },
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
+    const isAdminOuAlmoxarife = /admin|almoxarife/i.test(localStorage.getItem('user') || '');
+    const endpointUrl = isAdminOuAlmoxarife ? `${API_BASE_URL}/emprestimos` : `${API_BASE_URL}/emprestimos/meus`;
 
-        if (response.ok) {
-          const data = await response.json();
-          setFerramentas(data);
-          setUsandoMock(false);
-          setErro('');
-        } else {
-          // Se responder com erro (ex: token expirou), ativa o mock de segurança
-          setFerramentas(DADOS_MOCK_TESTE);
-          setUsandoMock(true);
-          setErro(`Erro ${response.status}: Exibindo dados de simulação.`);
-        }
-      } catch (err) {
-        // Se o IntelliJ estiver desligado, carrega os mocks e avisa com um banner azul informativo
+    try {
+      const response = await fetch(endpointUrl, {
+        method: 'GET',
+        headers: { 
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json' 
+        },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        const ativosAtivos = data.filter(emp => !emp.dataDevolucao);
+        setFerramentas(ativosAtivos);
+        setUsandoMock(false);
+        setErro('');
+      } else {
         setFerramentas(DADOS_MOCK_TESTE);
         setUsandoMock(true);
+        setErro(`Erro ${response.status}: Exibindo dados de simulação.`);
       }
+    } catch (err) {
+      setFerramentas(DADOS_MOCK_TESTE);
+      setUsandoMock(true);
+    } finally {
       setLoading(false);
-    };
+    }
+  };
 
+  useEffect(() => {
     fetchFerramentasEmUso();
   }, []);
 
+  // 🛠️ PROCESSAR CHECK-IN (PATCH) ATUALIZADO DINAMICAMENTE CONFORME SEU SPRINT BOOT
+  const handleProcessarDevolucao = async () => {
+    if (!emprestimoParaDevolver) return;
+    setDevolucaoLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/emprestimos/${emprestimoParaDevolver.id}/devolucao`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          estadoConservacao: estadoConservacao // 🔥 Enviando o valor selecionado ("BOM_ESTADO" ou "DANIFICADA")
+        })
+      });
+
+      if (response.ok) {
+        setDevolucaoModalOpen(false);
+        setEmprestimoParaDevolver(null);
+        setEstadoConservacao('BOM_ESTADO'); // Reseta para o padrão limpo pós-sucesso
+        fetchFerramentasEmUso(); 
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        alert(`Erro ${response.status}: ${errData.detail || 'Não foi possível registrar a devolução.'}`);
+      }
+    } catch (err) {
+      alert('Falha na conexão ao tentar processar a devolução.');
+    } finally {
+      setDevolucaoLoading(false);
+    }
+  };
+
   const ferramentasFiltradas = ferramentas.filter((f) => {
     const termo = searchTerm?.toLowerCase() || '';
-    const nome = (f.nomeFerramenta || f.nome || '').toLowerCase();
-    const codigo = (f.codigoPatrimonio || f.id || '').toString().toLowerCase();
+    const nome = (f.ferramenta?.nome || f.nomeFerramenta || '').toLowerCase();
+    const codigo = (f.ferramenta?.codigoPatrimonio || f.codigoPatrimonio || '').toString().toLowerCase();
     return nome.includes(termo) || codigo.includes(termo);
   });
 
   const abrirDetalhes = (ferramenta) => {
     setToolDetalhada(ferramenta);
     setModalOpen(true);
+  };
+
+  const acionarDevolucao = (emprestimo) => {
+    setEmprestimoParaDevolver(emprestimo);
+    setDevolucaoModalOpen(true);
   };
 
   if (loading) {
@@ -195,10 +256,9 @@ const EmUso = () => {
         Em Uso
       </Typography>
 
-      {/* BANNER REATIVADO: Só aparece quando o backend cai */}
       {usandoMock && (
         <Alert severity="info" sx={{ mb: 3, borderRadius: '12px', fontFamily: 'Poppins', fontWeight: 500 }}>
-          <b>Modo Sandbox Ativo:</b> Conexão com o servidor indisponível. Exibindo dados locais para testes de interface.
+          <b>Modo Sandbox Ativo:</b> Exibindo dados locais para testes de interface.
         </Alert>
       )}
 
@@ -206,34 +266,54 @@ const EmUso = () => {
       
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 3 }}>
         {ferramentasFiltradas.map((f, i) => (
-          <ToolCardEmUso key={f.id || i} ferramenta={f} onVerDetalhes={abrirDetalhes} />
+          <ToolCardEmUso key={f.id || i} ferramenta={f} onVerDetalhes={abrirDetalhes} onAcionarDevolucao={acionarDevolucao} />
         ))}
       </Box>
 
-      {ferramentasFiltradas.length === 0 && !erro && (
+      {ferramentasFiltradas.length === 0 && (
         <Typography variant="body1" sx={{ mt: 6, textAlign: 'center', color: 'text.secondary', fontFamily: 'Poppins' }}>
           Nenhuma ferramenta correspondente em uso.
         </Typography>
       )}
 
-      <Dialog 
-        open={modalOpen} 
-        onClose={() => setModalOpen(false)}
-        PaperProps={{
-          sx: {
-            borderRadius: '24px',
-            p: 1.5,
-            bgcolor: isLight ? '#ffffff' : '#14213D',
-            border: '1px solid',
-            borderColor: isLight ? 'divider' : 'rgba(0, 242, 255, 0.2)',
-            boxShadow: isLight ? theme.shadows[10] : '0 0 30px rgba(0, 242, 255, 0.1)',
-            minWidth: { xs: '90%', sm: '480px' }
-          }
-        }}
-      >
-        <DialogTitle sx={{ fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5', pb: 1 }}>
-          Ficha Técnico-Operacional
-        </DialogTitle>
+      {/* 🌟 MODAL DE CONFIRMAÇÃO DE DEVOLUÇÃO ATUALIZADA COM COMPONENTE SELECT INTEGRADO */}
+      <Dialog open={devolucaoModalOpen} onClose={() => setDevolucaoModalOpen(false)} PaperProps={{ sx: { borderRadius: '20px', p: 1, bgcolor: isLight ? '#ffffff' : '#14213D', minWidth: '320px' } }}>
+        <DialogTitle sx={{ fontFamily: 'Poppins', fontWeight: 700 }}>Confirmar Devolução?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontFamily: 'Poppins', mb: 3 }}>
+            Deseja registrar o retorno completo deste ativo para o estoque do almoxarifado?
+          </Typography>
+
+          {/* 🛠️ DROPDOWN SELETOR CONFORME AS REGRAS DO BACKEND DO SEU GRUPO */}
+          <TextField
+            select
+            fullWidth
+            label="Estado de Conservação do Ativo"
+            value={estadoConservacao}
+            onChange={(e) => setEstadoConservacao(e.target.value)}
+            SelectProps={{ native: true }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '14px',
+                fontFamily: 'Poppins'
+              }
+            }}
+          >
+            <option value="BOM_ESTADO">🟢 Em Bom Estado (Disponível)</option>
+            <option value="DANIFICADA">🔴 Danificada (Vai para Manutenção)</option>
+          </TextField>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setDevolucaoModalOpen(false)} disabled={devolucaoLoading} sx={{ textTransform: 'none', fontFamily: 'Poppins', fontWeight: 600, color: 'text.secondary' }}>Cancelar</Button>
+          <Button onClick={handleProcessarDevolucao} variant="contained" disabled={devolucaoLoading} sx={{ textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, bgcolor: '#FFB347', color: 'white', borderRadius: '10px', '&:hover': { bgcolor: '#e09a36' } }}>
+            {devolucaoLoading ? <CircularProgress size={20} color="inherit" /> : 'Confirmar Retorno'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* MODAL DETALHES */}
+      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} PaperProps={{ sx: { borderRadius: '24px', p: 1.5, bgcolor: isLight ? '#ffffff' : '#14213D', minWidth: { xs: '90%', sm: '480px' } } }}>
+        <DialogTitle sx={{ fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5', pb: 1 }}>Ficha Técnico-Operacional</DialogTitle>
         <DialogContent>
           {toolDetalhada && (
             <Stack spacing={2.5} sx={{ mt: 1 }}>
@@ -241,29 +321,26 @@ const EmUso = () => {
                 <QrCode2Icon sx={{ fontSize: '3rem', color: isLight ? '#14213D' : '#00f2ff' }} />
                 <Box>
                   <Typography variant="h6" sx={{ fontFamily: 'Poppins', fontWeight: 700 }}>
-                    {toolDetalhada.nomeFerramenta || 'Ferramenta'}
+                    {toolDetalhada.ferramenta?.nome || toolDetalhada.nomeFerramenta || 'Ferramenta'}
                   </Typography>
                   <Typography variant="caption" sx={{ fontFamily: 'JetBrains Mono', color: 'text.secondary' }}>
-                    PATRIMÔNIO: {toolDetalhada.codigoPatrimonio}
+                    PATRIMÔNIO: {toolDetalhada.ferramenta?.codigoPatrimonio || toolDetalhada.codigoPatrimonio}
                   </Typography>
                 </Box>
               </Box>
-
               <Divider />
-
               <Grid container spacing={2}>
                 <Grid item xs={12} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <PersonIcon sx={{ color: 'text.secondary' }} />
                   <Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>Responsável Atual</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {toolDetalhada.nomeUsuario || 'Colaborador não identificado'}
+                      {toolDetalhada.usuario?.nome || toolDetalhada.nomeUsuario || 'Ana (Você)'}
                     </Typography>
                   </Box>
                 </Grid>
-
                 <Grid item xs={6} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1 }}>
-                  <AccessTimeIcon hover={{ color: 'text.secondary' }} />
+                  <AccessTimeIcon sx={{ color: 'text.secondary' }} />
                   <Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>Retirada</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
@@ -271,23 +348,21 @@ const EmUso = () => {
                     </Typography>
                   </Box>
                 </Grid>
-
                 <Grid item xs={6} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1 }}>
                   <AccessTimeIcon sx={{ color: 'text.secondary' }} />
                   <Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>Previsão Devolução</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600, color: '#FFB347' }}>
-                      {toolDetalhada.dataDevolucao ? extrairHora(toolDetalhada.dataDevolucao) : 'Fim do Turno'}
+                      Fim do Turno
                     </Typography>
                   </Box>
                 </Grid>
-
                 <Grid item xs={12} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1 }}>
                   <MeetingRoomIcon sx={{ color: 'text.secondary' }} />
                   <Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>Local de Retorno Original</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {toolDetalhada.origem || 'Almoxarifado Central'}
+                      {toolDetalhada.ferramenta?.gavetaLocalizacao || toolDetalhada.origem || 'Almoxarifado Central'}
                     </Typography>
                   </Box>
                 </Grid>
@@ -296,12 +371,7 @@ const EmUso = () => {
           )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pt: 1 }}>
-          <Button 
-            onClick={() => setModalOpen(false)}
-            sx={{ textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, color: 'text.primary', borderRadius: '12px' }}
-          >
-            Fechar Diagnóstico
-          </Button>
+          <Button onClick={() => setModalOpen(false)} sx={{ textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, color: 'text.primary', borderRadius: '12px' }}>Fechar Diagnóstico</Button>
         </DialogActions>
       </Dialog>
     </Box>

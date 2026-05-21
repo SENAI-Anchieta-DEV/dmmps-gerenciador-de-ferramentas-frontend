@@ -17,7 +17,8 @@ import {
   Divider, 
   Stack, 
   TextField, 
-  IconButton 
+  IconButton,
+  Tooltip
 } from '@mui/material';
 
 import ConstructionIcon from '@mui/icons-material/Construction';
@@ -30,17 +31,22 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
+// 🌟 NOVOS ÍCONES PARA O FLUXO DE EMPRÉSTIMO
+import PlayForWorkIcon from '@mui/icons-material/PlayForWork'; // Ícone para Retirar
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn'; // Ícone para Devolver
+
 import API_BASE_URL from '../apiConfig';
 
-// 🎯 MAPEAMENTO GLOBAL DAS CORES OFICIAIS DO SEU TOOLHUB (Acessível por todo o arquivo)
+// 🎯 MAPEAMENTO GLOBAL DAS CORES OFICIAIS DO SEU TOOLHUB
 const getStatusColor = (status) => {
   if (/manutencao/i.test(status)) return '#FFB347'; // Amarelo oficial da legenda
   if (/descartada|indisponivel/i.test(status)) return '#FF4747'; // Vermelho de descarte
+  if (/em_uso|uso/i.test(status)) return '#FFB347'; // Laranja/Amarelo para Em Uso para manter o padrão visual
   return '#85FF80'; // Verde oficial de Disponível
 };
 
 // --- COMPONENTE DO CARD DE LISTAGEM ---
-const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar }) => {
+const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, onAcaoEmprestimo }) => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
 
@@ -49,6 +55,8 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar }) 
   const statusAtivo = ferramenta.status || 'DISPONIVEL';
 
   const corStatus = getStatusColor(statusAtivo);
+  const isDisponivel = statusAtivo.toUpperCase() === 'DISPONIVEL';
+  const isEmUso = statusAtivo.toUpperCase() === 'EM_USO';
 
   return (
     <Paper 
@@ -80,7 +88,7 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar }) 
           <ConstructionIcon />
         </Avatar>
 
-        <Box sx={{ flexGrow: 1, ml: 2, pr: podeModificar ? 4 : 0 }}>
+        <Box sx={{ flexGrow: 1, ml: 2, pr: 8 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: 'text.primary', fontFamily: 'Poppins' }}>
             {nome}
           </Typography>
@@ -89,26 +97,45 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar }) 
           </Typography>
         </Box>
 
-        {podeModificar ? (
-          <IconButton 
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeletar(ferramenta);
-            }}
-            sx={{ 
-              position: 'absolute', 
-              top: 15, 
-              right: 15, 
-              color: theme.palette.error.main,
-              transition: 'transform 0.2s',
-              '&:hover': { transform: 'scale(1.15)', bgcolor: 'rgba(211, 47, 47, 0.1)' }
-            }}
-          >
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        ) : (
-          <QrCode2Icon sx={{ color: 'text.primary', opacity: 0.8, fontSize: '2.2rem' }} />
-        )}
+        {/* 🛠️ ÁREA DE BOTÕES DE AÇÃO CONTEXTUAIS (LIXEIRA OU EMPRÉSTIMO) */}
+        <Box sx={{ position: 'absolute', top: 15, right: 15, display: 'flex', gap: 1 }}>
+          
+          {/* Botão Dinâmico do Técnico (Solicitar ou Devolver) */}
+          {!podeModificar && (isDisponivel || isEmUso) && (
+            <Tooltip title={isDisponivel ? "Solicitar Empréstimo" : "Devolver Ferramenta"}>
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAcaoEmprestimo(ferramenta, isDisponivel ? 'SOLICITAR' : 'DEVOLVER');
+                }}
+                sx={{
+                  color: isDisponivel ? (isLight ? 'primary.main' : '#00f2ff') : '#FFB347',
+                  transition: 'transform 0.2s',
+                  '&:hover': { transform: 'scale(1.15)', bgcolor: 'action.hover' }
+                }}
+              >
+                {isDisponivel ? <PlayForWorkIcon /> : <AssignmentTurnedInIcon />}
+              </IconButton>
+            </Tooltip>
+          )}
+
+          {/* Botão de Deletar para Admin/Almoxarife */}
+          {podeModificar && (
+            <IconButton 
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeletar(ferramenta);
+              }}
+              sx={{ 
+                color: theme.palette.error.main,
+                transition: 'transform 0.2s',
+                '&:hover': { transform: 'scale(1.15)', bgcolor: 'rgba(211, 47, 47, 0.1)' }
+              }}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          )}
+        </Box>
       </Box>
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 'auto' }}>
@@ -130,7 +157,6 @@ const Ferramentas = () => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
 
-  // Puxa o searchTerm direto do Layout.jsx
   const { searchTerm } = useOutletContext();
 
   // Estados da Listagem e Conexão
@@ -138,12 +164,18 @@ const Ferramentas = () => {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState('');
 
-  // Modais
+  // Modais de Detalhes e Delete
   const [modalOpen, setModalOpen] = useState(false);
   const [toolDetalhada, setToolDetalhada] = useState(null);
   const [confirmarDeleteOpen, setConfirmarDeleteOpen] = useState(false);
   const [toolParaDeletar, setToolParaDeletar] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // 🌟 ESTADOS PARA OS NOVOS MODAIS DE EMPRÉSTIMO
+  const [emprestimoModalOpen, setEmprestimoModalOpen] = useState(false);
+  const [toolEmprestimo, setToolEmprestimo] = useState(null);
+  const [tipoAcaoEmprestimo, setTipoAcaoEmprestimo] = useState(''); // 'SOLICITAR' ou 'DEVOLVER'
+  const [emprestimoLoading, setEmprestimoLoading] = useState(false);
 
   // Subpágina Cadastro e Formulário
   const [exibirCadastro, setExibirCadastro] = useState(false);
@@ -156,7 +188,6 @@ const Ferramentas = () => {
   const [cadastroErro, setCadastroErro] = useState('');
   const [cadastroSucesso, setCadastroSucesso] = useState(false);
 
-  // Estilos Inputs
   const inputStyles = {
     '& .MuiOutlinedInput-root': {
       borderRadius: '14px',
@@ -182,6 +213,13 @@ const Ferramentas = () => {
   function acionarDeletar(ferramenta) {
     setToolParaDeletar(ferramenta);
     setConfirmarDeleteOpen(true);
+  }
+
+  // 🌟 FUNÇÃO QUE DISPARA O POP-UP DE EMPRÉSTIMO/DEVOLUÇÃO
+  function acionarAcaoEmprestimo(ferramenta, tipo) {
+    setToolEmprestimo(ferramenta);
+    setTipoAcaoEmprestimo(tipo);
+    setEmprestimoModalOpen(true);
   }
 
   const verificarPermissaoAdministrativa = () => {
@@ -213,6 +251,57 @@ const Ferramentas = () => {
   useEffect(() => {
     fetchFerramentas();
   }, []);
+
+  const handleProcessarEmprestimo = async () => {
+    if (!toolEmprestimo) return;
+    setEmprestimoLoading(true);
+    
+    const token = localStorage.getItem('token');
+    
+    // 🧱 GARANTIA: Se API_BASE_URL falhar, usamos o fallback do seu ambiente
+    const urlBase = API_BASE_URL || 'http://localhost:8080';
+    const urlFinal = tipoAcaoEmprestimo === 'SOLICITAR' 
+      ? `${urlBase}/emprestimos` 
+      : `${urlBase}/emprestimos/${toolEmprestimo.id}/devolucao`;
+
+    console.log("=== DESBUGANDO FLUXO TOOLHUB ===");
+    console.log("Ação executada:", tipoAcaoEmprestimo);
+    console.log("URL chamada:", urlFinal);
+    console.log("Payload enviado:", JSON.stringify({ ferramentaId: toolEmprestimo.id }));
+
+    try {
+      const response = await fetch(urlFinal, {
+        method: tipoAcaoEmprestimo === 'SOLICITAR' ? 'POST' : 'PATCH',
+        headers: { 
+          'Authorization': `Bearer ${token}`, 
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify(
+          tipoAcaoEmprestimo === 'SOLICITAR' 
+            ? { ferramentaId: toolEmprestimo.id } 
+            : { estadoConservacao: "BOM_ESTADO" }
+        )
+      }); 
+
+      // Enviar apenas ferramentaId no POST. O back-end extrai o usuário autenticado direto do Token JWT por segurança, evitando conflito de IDs.
+
+      if (response.ok) {
+        setEmprestimoModalOpen(false);
+        setToolEmprestimo(null);
+        fetchFerramentas(); // 🔄 Atualiza a tela na hora!
+      } else {
+        // Se o Java responder com erro, vamos ler o JSON de erro real dele
+        const errData = await response.json().catch(() => ({}));
+        console.error("Erro retornado pelo Java:", errData);
+        alert(`Erro ${response.status}: ${errData.detail || 'Acesso negado ou restrição de negócio.'}`);
+      }
+    } catch (err) {
+      console.error("Erro de rede/comunicação no fetch:", err);
+      alert(`Erro na comunicação com o servidor: ${err.message}. Verifique se o seu Java na porta 8080 está rodando!`);
+    } finally {
+      setEmprestimoLoading(false);
+    }
+  };
 
   const handleConfirmarExclusao = async () => {
     if (!toolParaDeletar) return;
@@ -275,7 +364,7 @@ const Ferramentas = () => {
     }
   };
 
-if (loading && ferramentas.length === 0) {
+  if (loading && ferramentas.length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}>
         <CircularProgress sx={{ color: isLight ? 'primary.main' : '#00f2ff' }} />
@@ -284,10 +373,21 @@ if (loading && ferramentas.length === 0) {
   }
 
   const termo = (searchTerm || '').toLowerCase();
-  const ferramentasFiltradas = ferramentas.filter(f => 
-    (f.nome || '').toLowerCase().includes(termo) || 
-    (f.codigoPatrimonio || '').toLowerCase().includes(termo)
-  );
+  
+  // 🌟 Filtro inteligente: Na página de ferramentas normais, você pode querer listar tudo.
+  // Se for a rota "Em Uso", bastará fazer o filter por 'EM_USO'.
+  const ferramentasFiltradas = ferramentas.filter(f => {
+    // 🔍 1. Verifica se o nome ou patrimônio bate com o termo de busca do header
+    const correspondeBusca = (f.nome || '').toLowerCase().includes(termo) || 
+                             (f.codigoPatrimonio || '').toLowerCase().includes(termo);
+    
+    // 🔐 2. REGRA OPERACIONAL DO TÉCNICO: 
+    // Se for Admin/Almoxarife, exibe tudo. Se for Técnico, esconde o que já está EM_USO
+    const podeVerTudo = verificarPermissaoAdministrativa();
+    const estáDisponivel = (f.status || '').toUpperCase() === 'DISPONIVEL';
+
+    return correspondeBusca && (podeVerTudo || estáDisponivel);
+  });
 
   if (exibirCadastro) {
     return (
@@ -353,7 +453,14 @@ if (loading && ferramentas.length === 0) {
       ) : (
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 3 }}>
           {ferramentasFiltradas.map((f, i) => (
-            <ToolCardLista key={f.id || i} ferramenta={f} onVerDetalhes={abrirDetalhes} onDeletar={acionarDeletar} podeModificar={verificarPermissaoAdministrativa()} />
+            <ToolCardLista 
+              key={f.id || i} 
+              ferramenta={f} 
+              onVerDetalhes={abrirDetalhes} 
+              onDeletar={acionarDeletar} 
+              podeModificar={verificarPermissaoAdministrativa()} 
+              onAcaoEmprestimo={acionarAcaoEmprestimo}
+            />
           ))}
         </Box>
       )}
@@ -363,6 +470,40 @@ if (loading && ferramentas.length === 0) {
           {searchTerm ? 'Nenhuma ferramenta corresponde à sua busca.' : 'Nenhuma ferramenta cadastrada no sistema.'}
         </Typography>
       )}
+
+      {/* 🌟 NOVO MODAL DE CONFIRMAÇÃO DE EMPRÉSTIMO / DEVOLUÇÃO */}
+      <Dialog open={emprestimoModalOpen} onClose={() => setEmprestimoModalOpen(false)} PaperProps={{ sx: { borderRadius: '20px', p: 1, bgcolor: isLight ? '#ffffff' : '#14213D' } }}>
+        <DialogTitle sx={{ fontFamily: 'Poppins', fontWeight: 700 }}>
+          {tipoAcaoEmprestimo === 'SOLICITAR' ? 'Confirmar Solicitação de Empréstimo?' : 'Confirmar Devolução de Ferramenta?'}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontFamily: 'Poppins' }}>
+            {tipoAcaoEmprestimo === 'SOLICITAR' 
+              ? `Você está prestes a retirar a ferramenta ${toolEmprestimo?.nome} (Patrimônio: ${toolEmprestimo?.codigoPatrimonio}). O status do ativo mudará para EM USO.`
+              : `Deseja registrar a devolução da ferramenta ${toolEmprestimo?.nome} (Patrimônio: ${toolEmprestimo?.codigoPatrimonio}) de volta para o estoque?`
+            }
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setEmprestimoModalOpen(false)} disabled={emprestimoLoading} sx={{ textTransform: 'none', fontFamily: 'Poppins', fontWeight: 600, color: 'text.secondary' }}>Cancelar</Button>
+          <Button 
+            onClick={handleProcessarEmprestimo} 
+            variant="contained" 
+            disabled={emprestimoLoading} 
+            sx={{ 
+              textTransform: 'none', 
+              fontFamily: 'Poppins', 
+              fontWeight: 700, 
+              bgcolor: tipoAcaoEmprestimo === 'SOLICITAR' ? (isLight ? '#14213D' : '#00f2ff') : '#FFB347', 
+              color: tipoAcaoEmprestimo === 'SOLICITAR' && !isLight ? '#14213D' : 'white', 
+              borderRadius: '10px',
+              '&:hover': { bgcolor: tipoAcaoEmprestimo === 'SOLICITAR' ? 'primary.dark' : '#e09a36' }
+            }}
+          >
+            {emprestimoLoading ? <CircularProgress size={20} color="inherit" /> : 'Confirmar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* MODAL DETALHES */}
       <Dialog open={modalOpen} onClose={() => setModalOpen(false)} PaperProps={{ sx: { borderRadius: '24px', p: 1.5, bgcolor: isLight ? '#ffffff' : '#14213D', minWidth: { xs: '90%', sm: '480px' } } }}>

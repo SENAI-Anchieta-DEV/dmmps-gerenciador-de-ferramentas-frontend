@@ -32,6 +32,13 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import API_BASE_URL from '../apiConfig';
 
+// 🎯 MAPEAMENTO GLOBAL DAS CORES OFICIAIS DO SEU TOOLHUB (Acessível por todo o arquivo)
+const getStatusColor = (status) => {
+  if (/manutencao/i.test(status)) return '#FFB347'; // Amarelo oficial da legenda
+  if (/descartada|indisponivel/i.test(status)) return '#FF4747'; // Vermelho de descarte
+  return '#85FF80'; // Verde oficial de Disponível
+};
+
 // --- COMPONENTE DO CARD DE LISTAGEM ---
 const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar }) => {
   const theme = useTheme();
@@ -39,6 +46,9 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar }) 
 
   const nome = ferramenta.nome || 'Ferramenta Sem Nome';
   const codigo = ferramenta.codigoPatrimonio || '#ID-0000';
+  const statusAtivo = ferramenta.status || 'DISPONIVEL';
+
+  const corStatus = getStatusColor(statusAtivo);
 
   return (
     <Paper 
@@ -47,7 +57,7 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar }) 
         p: 2.5, 
         borderRadius: '20px', 
         border: '1px solid',
-        borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)',
+        borderColor: corStatus, 
         bgcolor: 'background.paper',
         backdropFilter: 'blur(10px)',
         display: 'flex',
@@ -58,13 +68,15 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar }) 
         transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease',
         '&:hover': { 
           transform: 'translateY(-5px)',
-          boxShadow: isLight ? '0 12px 30px rgba(20, 33, 61, 0.06)' : '0 0 25px rgba(0, 242, 255, 0.15)',
-          borderColor: isLight ? 'primary.main' : '#00f2ff',
+          boxShadow: isLight 
+            ? `0 12px 30px ${corStatus}30` 
+            : `0 0 25px ${corStatus}40`,
+          borderColor: corStatus,
         }
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Avatar sx={{ bgcolor: `${isLight ? '#14213D' : '#00f2ff'}15`, color: isLight ? '#14213D' : '#00f2ff', border: '1px solid', borderColor: isLight ? 'divider' : 'rgba(0, 242, 255, 0.2)', width: 48, height: 48 }}>
+        <Avatar sx={{ bgcolor: `${corStatus}15`, color: corStatus, border: '1px solid', borderColor: `${corStatus}30`, width: 48, height: 48 }}>
           <ConstructionIcon />
         </Avatar>
 
@@ -162,7 +174,6 @@ const Ferramentas = () => {
     '& .MuiOutlinedInput-input': { fontFamily: '"JetBrains Mono", monospace', letterSpacing: '0.5px' }
   };
 
-  // 🔐 DEFEZA CONTRA HOISTING: Mudamos para funções tradicionais pro React ler em qualquer ordem
   function abrirDetalhes(ferramenta) {
     setToolDetalhada(ferramenta);
     setModalOpen(true);
@@ -264,7 +275,7 @@ const Ferramentas = () => {
     }
   };
 
-  if (loading && ferramentas.length === 0) {
+if (loading && ferramentas.length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}>
         <CircularProgress sx={{ color: isLight ? 'primary.main' : '#00f2ff' }} />
@@ -272,14 +283,12 @@ const Ferramentas = () => {
     );
   }
 
-  // Filtragem executada na renderização
   const termo = (searchTerm || '').toLowerCase();
   const ferramentasFiltradas = ferramentas.filter(f => 
     (f.nome || '').toLowerCase().includes(termo) || 
     (f.codigoPatrimonio || '').toLowerCase().includes(termo)
   );
 
-  // --- SUBPÁGINA DE CADASTRO EXPANDIDA ---
   if (exibirCadastro) {
     return (
       <Box sx={{ width: '100%', pb: 5 }}>
@@ -324,7 +333,6 @@ const Ferramentas = () => {
     );
   }
 
-  // --- PÁGINA PRINCIPAL DE LISTAGEM ---
   return (
     <Box sx={{ width: '100%', pb: 5 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
@@ -389,7 +397,7 @@ const Ferramentas = () => {
                   <InfoIcon sx={{ color: 'text.secondary' }} />
                   <Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>Status do Ativo</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700, color: toolDetalhada.status === 'DISPONIVEL' ? '#85FF80' : '#FFB347' }}>{toolDetalhada.status || 'N/A'}</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: getStatusColor(toolDetalhada.status) }}>{toolDetalhada.status || 'N/A'}</Typography>
                   </Box>
                 </Grid>
                 <Grid item xs={12} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mt: 1 }}>

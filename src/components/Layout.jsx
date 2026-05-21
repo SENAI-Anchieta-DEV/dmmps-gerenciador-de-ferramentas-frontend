@@ -104,11 +104,11 @@ const Layout = ({ toggleColorMode }) => {
             <Box sx={{ display: 'flex', gap: 1.5 }}> 
               {!isOcorrenciasPage && !isDashboardHome && (
                 <>
-                  <Chip icon={<Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#85FF80', ml: 1 }} />} label="Em Uso" variant="outlined" sx={{ borderRadius: '20px', borderColor: 'divider', fontWeight: 600 }} />
+                  <Chip icon={<Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#85FF80', ml: 1 }} />} label="Disponível" variant="outlined" sx={{ borderRadius: '20px', borderColor: 'divider', fontWeight: 600 }} />
                   {!isEmUsoPage && ( 
                     <>
-                      <Chip icon={<Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#FF6961', ml: 1 }} />} label="Não Devolvidas" variant="outlined" sx={{ borderRadius: '20px', borderColor: 'divider' }} />
-                      <Chip icon={<Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#FFB347', ml: 1 }} />} label="Manutenção" variant="outlined" sx={{ borderRadius: '20px', borderColor: 'divider' }} />
+                      <Chip icon={<Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#FF6961', ml: 1 }} />} label="Manutenção" variant="outlined" sx={{ borderRadius: '20px', borderColor: 'divider' }} />
+                      <Chip icon={<Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#FFB347', ml: 1 }} />} label="Em Uso" variant="outlined" sx={{ borderRadius: '20px', borderColor: 'divider' }} />
                     </>
                   )}
                 </>

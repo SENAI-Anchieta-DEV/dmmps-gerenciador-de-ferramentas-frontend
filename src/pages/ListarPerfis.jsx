@@ -49,7 +49,7 @@ const ListarPerfis = () => {
   
   const { searchTerm, setSearchTerm, toggleColorMode } = useOutletContext();
 
-  // 🎯 SOLUÇÃO: Estado interno controlado para garantir funcionamento autônomo do input
+  // Estado interno controlado para garantir funcionamento autônomo do input
   const [buscaLocal, setBuscaLocal] = useState(searchTerm || '');
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +62,7 @@ const ListarPerfis = () => {
   const [userParaDeletar, setUserParaDeletar] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  // Sincroniza a busca se ela vier alterada direto do cabeçalho global
+  // Sincroniza a busca se ela vir alterada direto do cabeçalho global
   useEffect(() => {
     if (searchTerm !== undefined) {
       setBuscaLocal(searchTerm);
@@ -104,12 +104,14 @@ const ListarPerfis = () => {
           'Content-Type': 'application/json' 
         }
       });
-      if (response.ok) {
+
+      // 🎯 Sincronizado com o Soft Delete (Exclusão Lógica) do seu Java
+      if (response.ok || response.status === 204) {
         setConfirmarDeleteOpen(false);
         setUserParaDeletar(null);
-        fetchUsuarios(); // Atualiza a lista automaticamente
+        fetchUsuarios(); // 🔄 Recarrega os dados do banco atualizando o status na tela!
       } else {
-        alert(`Erro ${response.status}: Falha ao remover usuário.`);
+        alert(`Erro ${response.status}: Não foi possível alterar o status do perfil.`);
       }
     } catch (err) {
       alert('Falha de conexão ao tentar deletar o usuário.');
@@ -120,7 +122,7 @@ const ListarPerfis = () => {
 
   const isAdmin = () => /admin|almoxarife/i.test(localStorage.getItem('user') || '');
 
-  // 🎯 FILTRAGEM DINÂMICA: Agora baseia-se na busca local imediata do input
+  // Filtragem dinâmica baseada na busca local imediata do input
   const filteredUsers = usuarios.filter(u => 
     (u.nome || '').toLowerCase().includes(buscaLocal.toLowerCase()) ||
     (u.registro || '').includes(buscaLocal) ||
@@ -179,7 +181,7 @@ const ListarPerfis = () => {
           Gerenciar Perfis
         </Typography>
 
-        {/* 🎯 BARRA DE PESQUISA ATUALIZADA COM ESCUTA INTERNA CONTROLADA */}
+        {/* BARRA DE PESQUISA */}
         <Box sx={{ maxWidth: '540px', mb: 4 }}>
           <TextField
             fullWidth
@@ -187,17 +189,17 @@ const ListarPerfis = () => {
             value={buscaLocal}
             onChange={(e) => {
               const valor = e.target.value;
-              setBuscaLocal(valor); // Garante a digitação imediata na tela
+              setBuscaLocal(valor);
               if (setSearchTerm) {
-                setSearchTerm(valor); // Notifica o Layout global se necessário
+                setSearchTerm(valor);
               }
             }}
             InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <SearchIcon sx={{ color: 'text.secondary' }} />
-                            </InputAdornment>
-                          ),
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: 'text.secondary' }} />
+                </InputAdornment>
+              ),
             }}
             sx={{
               '& .MuiOutlinedInput-root': {
@@ -235,7 +237,7 @@ const ListarPerfis = () => {
               <TableHead>
                 <TableRow>
                   <TableCell sx={cellHeaderStyle}>Usuário</TableCell>
-                  <TableCell sx={cellHeaderStyle}>Registro</TableCell>
+                  <TableCell sx={cellHeaderStyle}>ID</TableCell>
                   <TableCell sx={cellHeaderStyle}>Cargo</TableCell>
                   <TableCell sx={cellHeaderStyle}>Status</TableCell>
                   <TableCell align="right" sx={cellHeaderStyle}>Ações</TableCell>
@@ -244,14 +246,17 @@ const ListarPerfis = () => {
               <TableBody>
                 {filteredUsers.map((user) => {
                   const roleStyle = getCargoStyle(user.perfil);
-                  const isUserAtivo = user.status !== 'INATIVO';
+                  
+                  // 🎯 VALIDAÇÃO DO SOFT DELETE: O status mapeia direto o atributo "ativo" do banco
+                  const isUserAtivo = user.ativo !== false && user.status !== 'INATIVO';
 
                   return (
                     <TableRow 
                       key={user.id}
                       sx={{ 
                         transition: 'background-color 0.2s ease',
-                        '&:hover': { bgcolor: isLight ? 'rgba(0,0,0,0.01)' : 'rgba(255,255,255,0.01)' }
+                        '&:hover': { bgcolor: isLight ? 'rgba(0,0,0,0.01)' : 'rgba(217, 221, 100, 0.01)' },
+                        opacity: isUserAtivo ? 1 : 0.65 // Efeito de apagamento que deixa claro os usuários deletados porem mantidos na lista.
                       }}
                     >
                       {/* Coluna Usuário */}
@@ -315,7 +320,8 @@ const ListarPerfis = () => {
                           Ver detalhes
                         </Button>
                         
-                        {isAdmin() && (
+                        {/* Se o usuário já estiver inativo, ocultamos a lixeira para evitar requisições redundantes */}
+                        {isAdmin() && isUserAtivo && (
                           <IconButton 
                             onClick={() => { setUserParaDeletar(user); setConfirmarDeleteOpen(true); }}
                             sx={{ color: '#FF4747', '&:hover': { bgcolor: 'rgba(255,71,71,0.1)' } }}
@@ -342,7 +348,7 @@ const ListarPerfis = () => {
         )}
       </Container>
 
-      {/* --- MODAL DE DETALHES (FICHA TÉCNICA) --- */}
+      {/* --- MODAL DE DETALHES --- */}
       <Dialog 
         open={modalOpen} 
         onClose={() => setModalOpen(false)}
@@ -383,11 +389,11 @@ const ListarPerfis = () => {
                 </Grid>
                 <Grid item xs={6} sx={{ mt: 1 }}>
                   <Stack direction="row" spacing={1.5} alignItems="center">
-                    <VerifiedUserIcon sx={{ color: userSelecionado.status === 'INATIVO' ? '#FF4747' : '#85FF80' }} />
+                    <VerifiedUserIcon sx={{ color: (userSelecionado.ativo === false || userSelecionado.status === 'INATIVO') ? '#FF4747' : '#85FF80' }} />
                     <Box>
                       <Typography variant="caption" color="text.secondary">Status</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 700, color: userSelecionado.status === 'INATIVO' ? '#FF4747' : '#85FF80' }}>
-                        {userSelecionado.status || 'ATIVO'}
+                      <Typography variant="body1" sx={{ fontWeight: 700, color: (userSelecionado.ativo === false || userSelecionado.status === 'INATIVO') ? '#FF4747' : '#85FF80' }}>
+                        {(userSelecionado.ativo === false || userSelecionado.status === 'INATIVO') ? 'Inativo' : 'Ativo'}
                       </Typography>
                     </Box>
                   </Stack>
@@ -406,13 +412,13 @@ const ListarPerfis = () => {
         <DialogTitle sx={{ fontFamily: 'Poppins', fontWeight: 700 }}>Remover Usuário do Sistema?</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ color: 'text.secondary', fontFamily: 'Poppins' }}>
-            Você está prestes a revogar os acessos e excluir definitivamente o perfil de <strong>{userParaDeletar?.nome}</strong> (Registro: {userParaDeletar?.registro}). Esta ação não pode ser desfeita.
+            Você está prestes a desativar os acessos e marcar como inativo o perfil de <strong>{userParaDeletar?.nome}</strong> (Registro: {userParaDeletar?.registro}). O histórico continuará salvo no sistema.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setConfirmarDeleteOpen(false)} disabled={deleteLoading} sx={{ textTransform: 'none', fontFamily: 'Poppins', fontWeight: 600, color: 'text.secondary' }}>Cancelar</Button>
           <Button onClick={handleConfirmarExclusao} variant="contained" disabled={deleteLoading} sx={{ textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, bgcolor: theme.palette.error.main, color: 'white', borderRadius: '10px' }}>
-            {deleteLoading ? <CircularProgress size={20} color="inherit" /> : 'Confirmar Exclusão'}
+            {deleteLoading ? <CircularProgress size={20} color="inherit" /> : 'Confirmar Desativação'}
           </Button>
         </DialogActions>
       </Dialog>

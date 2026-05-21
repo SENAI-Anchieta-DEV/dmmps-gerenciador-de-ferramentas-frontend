@@ -153,13 +153,13 @@ const DashboardInicio = () => {
           <CardMetrica titulo="Total do Estoque" valor="148" icone={<ConstructionIcon />} corStatus={isLight ? '#14213D' : '#00f2ff'} progressoSimulado={100} />
         </Grid>
         <Grid item xs={12} sm={6} lg={3}>
-          <CardMetrica titulo="Ferramentas Em Uso" valor="32" icone={<HandymanIcon />} corStatus="#85FF80" progressoSimulado={22} />
+          <CardMetrica titulo="Ferramentas Disponíveis" valor="32" icone={<HandymanIcon />} corStatus="#85FF80" progressoSimulado={22} />
         </Grid>
         <Grid item xs={12} sm={6} lg={3}>
-          <CardMetrica titulo="Em Manutenção" valor="05" icone={<WarningAmberIcon />} corStatus="#FFB347" progressoSimulado={8} />
+          <CardMetrica titulo="Em Uso" valor="05" icone={<WarningAmberIcon />} corStatus="#FFB347" progressoSimulado={8} />
         </Grid>
         <Grid item xs={12} sm={6} lg={3}>
-          <CardMetrica titulo="Descartes" valor="03" icone={<AccessTimeIcon />} corStatus="#FF6961" progressoSimulado={4} />
+          {/*<CardMetrica titulo="Descartes" valor="03" icone={<AccessTimeIcon />} corStatus="#FF6961" progressoSimulado={4} />*/} 
         </Grid>
       </Grid>
 

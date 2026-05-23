@@ -19,16 +19,6 @@ import API_BASE_URL from '../apiConfig'; // Puxa a url do seu back-end automatic
 
 const drawerWidth = 260;
 
-const menuItems = [
-  { text: 'Menu', icon: <MenuOpenIcon />, path: null }, 
-  { text: 'Início', icon: <DashboardIcon />, path: '/dashboard' },
-  { text: 'Em uso', icon: <ConstructionIcon />, path: '/dashboard/em-uso' },
-  { text: 'Ferramentas', icon: <SettingsIcon />, path: '/dashboard/ferramentas' },
-  { text: 'Ocorrências', icon: <WarningIcon />, path: '/dashboard/ocorrencias' },
-  { text: 'Novo Perfil', icon: <AccountCircleIcon />, path: '/dashboard/perfil/cadastrar' },
-  { text: 'Lista de Perfis', icon: <PeopleIcon />, path: '/dashboard/perfil/listar' },
-];
-
 const Layout = ({ toggleColorMode }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -40,6 +30,18 @@ const Layout = ({ toggleColorMode }) => {
   // 🟡 ESTADOS REATIVOS DO PERFIL DO USUÁRIO
   const [usuarioNome, setUsuarioNome] = useState('Usuário');
   const [usuarioRegistro, setUsuarioRegistro] = useState('#000000');
+  const [usuarioPerfil, setUsuarioPerfil] = useState(''); // 🌟 NOVO: Estado para travar o menu lateral de forma nativa
+
+  // 🧱 ITENS DO MENU REALOCADOS PARA DENTRO DO ESCOPO DE FILTRAGEM DINÂMICA
+  const menuItems = [
+    { text: 'Menu', icon: <MenuOpenIcon />, path: null, restrito: false }, 
+    { text: 'Início', icon: <DashboardIcon />, path: '/dashboard', restrito: false },
+    { text: 'Em uso', icon: <ConstructionIcon />, path: '/dashboard/em-uso', restrito: false },
+    { text: 'Ferramentas', icon: <SettingsIcon />, path: '/dashboard/ferramentas', restrito: false },
+    { text: 'Ocorrências', icon: <WarningIcon />, path: '/dashboard/ocorrencias', restrito: false },
+    { text: 'Novo Perfil', icon: <AccountCircleIcon />, path: '/dashboard/perfil/cadastrar', restrito: true }, // 🔒 Administrativo
+    { text: 'Lista de Perfis', icon: <PeopleIcon />, path: '/dashboard/perfil/listar', restrito: true },   // 🔒 Administrativo
+  ];
 
   // 🔄 CARREGAMENTO LIMPO E PROFISSIONAL (ROTA DE PERFIL PRÓPRIO /ME)
   useEffect(() => {
@@ -49,7 +51,6 @@ const Layout = ({ toggleColorMode }) => {
       if (!token) return;
 
       try {
-        // Bate na nova rota individual liberada para todos os perfis autenticados
         const response = await fetch(`${API_BASE_URL}/api/v1/usuarios/me`, {
           method: 'GET',
           headers: {
@@ -61,9 +62,14 @@ const Layout = ({ toggleColorMode }) => {
         if (response.ok) {
           const meuPerfil = await response.json();
           
-          // Alimenta o menu lateral com os dados reais vindos da entidade do banco
           if (meuPerfil.nome) setUsuarioNome(meuPerfil.nome);
           if (meuPerfil.registro) setUsuarioRegistro(meuPerfil.registro);
+          
+          // 🔐 FLUXO DE SEGURANÇA SEGURO: Armazena o enum real do banco sem adivinhações por string
+          if (meuPerfil.perfil) {
+            setUsuarioPerfil(meuPerfil.perfil);
+            localStorage.setItem('perfil', meuPerfil.perfil); // Salva para o Ferramentas.jsx ler!
+          }
         } else {
           console.error(`Erro ${response.status} ao carregar perfil do banco.`);
         }
@@ -75,6 +81,14 @@ const Layout = ({ toggleColorMode }) => {
     carregarPerfilUsuario();
   }, []);
 
+  // 🔒 REGRA OPERACIONAL DO MENU: Filtra as abas se o usuário logado for Técnico
+  const itensFiltrados = menuItems.filter(item => {
+    if (item.restrito && usuarioPerfil === 'TECNICO') {
+      return false;
+    }
+    return true;
+  });
+
   const isEmUsoPage = location.pathname.includes('em-uso');
   const isOcorrenciasPage = location.pathname.includes('ocorrencias'); 
   const isCadastrarPerfilPage = location.pathname.includes('perfil/cadastrar');
@@ -84,11 +98,10 @@ const Layout = ({ toggleColorMode }) => {
   const isCleanPage = isCadastrarPerfilPage || isListarPerfisPage || isOcorrenciasPage;
 
   const handleLogout = () => { 
-    localStorage.clear(); // Limpeza preventiva na saída do sistema
+    localStorage.clear(); 
     navigate('/'); 
   };
 
-  // Função auxiliar para renderizar a inicial dinâmica do avatar
   const obtenerInicial = (nome) => {
     if (!nome || nome === 'Usuário') return 'U';
     return nome.trim().charAt(0).toUpperCase();
@@ -104,7 +117,6 @@ const Layout = ({ toggleColorMode }) => {
             <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'Poppins' }}>LOGO TOOLHUB</Typography>
           </Box>
 
-          {/* 🟡 SEÇÃO PERFIL DO USUÁRIO INTEGRADA COM SUCESSO AO BANCO */}
           <Box sx={{ display: 'flex', alignItems: 'center', px: 3, py: 1, gap: 2, flexShrink: 0 }}>
             <Avatar sx={{ width: 64, height: 64, bgcolor: 'primary.main', border: '2px solid', borderColor: 'divider', fontWeight: 700, fontSize: '1.4rem', fontFamily: 'Poppins' }}>
               {obtenerInicial(usuarioNome)}
@@ -121,8 +133,9 @@ const Layout = ({ toggleColorMode }) => {
 
           <Divider sx={{ my: 2, mx: 2 }} />
 
+          {/* 🟡 ATUALIZADO: Consumindo a lista filtrada de acordo com as permissões do banco */}
           <List sx={{ flexGrow: 1, px: 2 }}>
-            {menuItems.map((item) => (
+            {itensFiltrados.map((item) => (
               <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
                 <ListItemButton component={item.path ? NavLink : 'div'} to={item.path} sx={{ borderRadius: '8px', color: 'text.primary', '&.active': { bgcolor: 'action.selected' }, '& .MuiListItemIcon-root': { color: 'text.primary', minWidth: '40px' } }}>
                   <ListItemIcon>{item.icon}</ListItemIcon>

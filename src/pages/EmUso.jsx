@@ -21,7 +21,6 @@ const ToolCardEmUso = ({ ferramenta, onVerDetalhes, onAcionarDevolucao }) => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
 
-  // O back-end mapeia a ferramenta dentro do objeto de Empréstimo
   const nome = ferramenta.ferramenta?.nome || ferramenta.nomeFerramenta || 'Ferramenta Sem Nome';
   const codigo = ferramenta.ferramenta?.codigoPatrimonio || ferramenta.codigoPatrimonio || '#ID-0000';
   const origem = ferramenta.ferramenta?.gavetaLocalizacao || ferramenta.origem || 'Almoxarifado Central';
@@ -134,8 +133,12 @@ const EmUso = () => {
   const [emprestimoParaDevolver, setEmprestimoParaDevolver] = useState(null);
   const [devolucaoLoading, setDevolucaoLoading] = useState(false);
   
-  // 🌟 NOVO ESTADO OPERACIONAL PARA COMPATIBILIDADE COM O POSTMAN (RF12 / RF13)
+  // 🌟 ESTADO OPERACIONAL PARA COMPATIBILIDADE COM O POSTMAN (RF12 / RF13)
   const [estadoConservacao, setEstadoConservacao] = useState('BOM_ESTADO');
+
+  // 🌟 ADICIONADO: Estados para capturar a escrita manual da ocorrência no fluxo integrado
+  const [tituloOcorrencia, setTituloOcorrencia] = useState('');
+  const [descricaoOcorrencia, setDescricaoOcorrencia] = useState('');
 
   const extrairHora = (isoString) => {
     if (!isoString) return '00h00';
@@ -154,7 +157,8 @@ const EmUso = () => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-    const isAdminOuAlmoxarife = /admin|almoxarife/i.test(localStorage.getItem('user') || '');
+    const perfilUsuario = localStorage.getItem('perfil') || '';
+    const isAdminOuAlmoxarife = perfilUsuario === 'ADMIN' || perfilUsuario === 'ALMOXARIFE';
     const endpointUrl = isAdminOuAlmoxarife ? `${API_BASE_URL}/emprestimos` : `${API_BASE_URL}/emprestimos/meus`;
 
     try {
@@ -205,7 +209,10 @@ const EmUso = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          estadoConservacao: estadoConservacao // 🔥 Enviando o valor selecionado ("BOM_ESTADO" ou "DANIFICADA")
+          estadoConservacao: estadoConservacao,
+          // 🌟 ADICIONADO: Enviando os textos digitados manualmente no modal para o DTO do Java
+          tituloOcorrencia: estadoConservacao === 'DANIFICADA' ? tituloOcorrencia.trim() : null,
+          descricaoOcorrencia: estadoConservacao === 'DANIFICADA' ? descricaoOcorrencia.trim() : null
         })
       });
 
@@ -213,6 +220,8 @@ const EmUso = () => {
         setDevolucaoModalOpen(false);
         setEmprestimoParaDevolver(null);
         setEstadoConservacao('BOM_ESTADO'); // Reseta para o padrão limpo pós-sucesso
+        setTituloOcorrencia(''); // 🌟 ADICIONADO: Limpa o campo de texto
+        setDescricaoOcorrencia(''); // 🌟 ADICIONADO: Limpa o campo de texto
         fetchFerramentasEmUso(); 
       } else {
         const errData = await response.json().catch(() => ({}));
@@ -237,8 +246,12 @@ const EmUso = () => {
     setModalOpen(true);
   };
 
+  // 🌟 ATUALIZADO: Garante o reset do estado de conservação e campos preventivos ao abrir o modal
   const acionarDevolucao = (emprestimo) => {
     setEmprestimoParaDevolver(emprestimo);
+    setEstadoConservacao('BOM_ESTADO'); 
+    setTituloOcorrencia(''); // 🌟 ADICIONADO
+    setDescricaoOcorrencia(''); // 🌟 ADICIONADO
     setDevolucaoModalOpen(true);
   };
 
@@ -276,36 +289,109 @@ const EmUso = () => {
         </Typography>
       )}
 
-      {/* 🌟 MODAL DE CONFIRMAÇÃO DE DEVOLUÇÃO ATUALIZADA COM COMPONENTE SELECT INTEGRADO */}
-      <Dialog open={devolucaoModalOpen} onClose={() => setDevolucaoModalOpen(false)} PaperProps={{ sx: { borderRadius: '20px', p: 1, bgcolor: isLight ? '#ffffff' : '#14213D', minWidth: '320px' } }}>
+      {/* 🌟 MODAL DE CONFIRMAÇÃO DE DEVOLUÇÃO ATUALIZADA COM BOTÕES PREMIUM EM VEZ DE SELECT NATIVO */}
+      <Dialog open={devolucaoModalOpen} onClose={() => setDevolucaoModalOpen(false)} PaperProps={{ sx: { borderRadius: '20px', p: 1, bgcolor: isLight ? '#ffffff' : '#14213D', minWidth: '380px', maxWidth: '450px' } }}>
         <DialogTitle sx={{ fontFamily: 'Poppins', fontWeight: 700 }}>Confirmar Devolução?</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ color: 'text.secondary', fontFamily: 'Poppins', mb: 3 }}>
-            Deseja registrar o retorno completo deste ativo para o estoque do almoxarifado?
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontFamily: 'Poppins', mb: 2.5 }}>
+            Deseja registrar o retorno completo do ativo <strong>{emprestimoParaDevolver?.ferramenta?.nome || Math?.nomeFerramenta}</strong> para o estoque do almoxarifado?
           </Typography>
 
-          {/* 🛠️ DROPDOWN SELETOR CONFORME AS REGRAS DO BACKEND DO SEU GRUPO */}
-          <TextField
-            select
-            fullWidth
-            label="Estado de Conservação do Ativo"
-            value={estadoConservacao}
-            onChange={(e) => setEstadoConservacao(e.target.value)}
-            SelectProps={{ native: true }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '14px',
-                fontFamily: 'Poppins'
-              }
+          {/* 🌟 ADICIONADO: Painel de Botões Premium de Conservação */}
+          <Box sx={{ p: 2, borderRadius: '12px', bgcolor: isLight ? 'rgba(20,33,61,0.02)' : 'rgba(255,255,255,0.02)', border: '1px solid', borderColor: 'divider', mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ fontFamily: 'Poppins', fontWeight: 600, mb: 1.5, color: 'text.primary' }}>
+              Condições de Conservação do Ativo:
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                variant={estadoConservacao === 'BOM_ESTADO' ? 'contained' : 'outlined'}
+                onClick={() => setEstadoConservacao('BOM_ESTADO')}
+                sx={{
+                  flex: 1,
+                  textTransform: 'none',
+                  fontFamily: 'Poppins',
+                  borderRadius: '10px',
+                  fontWeight: 600,
+                  borderColor: 'divider',
+                  bgcolor: estadoConservacao === 'BOM_ESTADO' ? '#85FF80' : 'transparent',
+                  color: estadoConservacao === 'BOM_ESTADO' ? '#14213D' : 'text.primary',
+                  '&:hover': { bgcolor: estadoConservacao === 'BOM_ESTADO' ? '#72eb6d' : 'action.hover' }
+                }}
+              >
+                Bom Estado
+              </Button>
+              <Button
+                variant={estadoConservacao === 'DANIFICADA' ? 'contained' : 'outlined'}
+                onClick={() => setEstadoConservacao('DANIFICADA')}
+                sx={{
+                  flex: 1,
+                  textTransform: 'none',
+                  fontFamily: 'Poppins',
+                  borderRadius: '10px',
+                  fontWeight: 600,
+                  borderColor: 'divider',
+                  bgcolor: estadoConservacao === 'DANIFICADA' ? '#FF4747' : 'transparent',
+                  color: estadoConservacao === 'DANIFICADA' ? '#ffffff' : 'text.primary',
+                  '&:hover': { bgcolor: estadoConservacao === 'DANIFICADA' ? '#e03b3b' : 'action.hover' }
+                }}
+              >
+                Danificada
+              </Button>
+            </Box>
+          </Box>
+
+          {/* 🌟 ADICIONADO: Formulário integrado de relato manual de Ocorrência quando o ativo está quebrado */}
+          {estadoConservacao === 'DANIFICADA' && (
+            <Stack spacing={2} sx={{ mt: 2, pt: 1, borderTop: '1px dashed', borderColor: 'divider' }}>
+              <Typography variant="subtitle2" sx={{ fontFamily: 'Poppins', fontWeight: 600, color: '#FF4747' }}>
+                Relatório de Avaria Técnico (Manual):
+              </Typography>
+              <TextField
+                required
+                fullWidth
+                label="Título da Ocorrência"
+                placeholder="Ex: Cabo de força quebrado"
+                value={tituloOcorrencia}
+                onChange={(e) => setTituloOcorrencia(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': { borderRadius: '12px', fontFamily: 'Poppins' },
+                  '& .MuiInputLabel-root': { fontFamily: 'Poppins' }
+                }}
+              />
+              <TextField
+                required
+                fullWidth
+                multiline
+                rows={3}
+                label="Descrição Detalhada do Defeito"
+                placeholder="Descreva o problema observado no ativo..."
+                value={descricaoOcorrencia}
+                onChange={(e) => setDescricaoOcorrencia(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': { borderRadius: '12px', fontFamily: 'Poppins' },
+                  '& .MuiInputLabel-root': { fontFamily: 'Poppins' }
+                }}
+              />
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, mt: 1 }}>
+          <Button onClick={() => setDevolucaoModalOpen(false)} disabled={devolucaoLoading} sx={{ textTransform: 'none', fontFamily: 'Poppins', fontWeight: 600, color: 'text.secondary' }}>Cancelar</Button>
+          <Button 
+            onClick={handleProcessarDevolucao} 
+            variant="contained" 
+            disabled={devolucaoLoading || (estadoConservacao === 'DANIFICADA' && (!tituloOcorrencia.trim() || !descricaoOcorrencia.trim()))} 
+            sx={{ 
+              textTransform: 'none', 
+              fontFamily: 'Poppins', 
+              fontWeight: 700, 
+              bgcolor: estadoConservacao === 'DANIFICADA' ? '#FF4747' : '#FFB347', 
+              color: 'white', 
+              borderRadius: '10px', 
+              '&:hover': { bgcolor: estadoConservacao === 'DANIFICADA' ? '#e03b3b' : '#e09a36' },
+              '&.Mui-disabled': { bgcolor: 'action.disabledBackground', color: 'action.disabled' }
             }}
           >
-            <option value="BOM_ESTADO">🟢 Em Bom Estado (Disponível)</option>
-            <option value="DANIFICADA">🔴 Danificada (Vai para Manutenção)</option>
-          </TextField>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setDevolucaoModalOpen(false)} disabled={devolucaoLoading} sx={{ textTransform: 'none', fontFamily: 'Poppins', fontWeight: 600, color: 'text.secondary' }}>Cancelar</Button>
-          <Button onClick={handleProcessarDevolucao} variant="contained" disabled={devolucaoLoading} sx={{ textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, bgcolor: '#FFB347', color: 'white', borderRadius: '10px', '&:hover': { bgcolor: '#e09a36' } }}>
             {devolucaoLoading ? <CircularProgress size={20} color="inherit" /> : 'Confirmar Retorno'}
           </Button>
         </DialogActions>

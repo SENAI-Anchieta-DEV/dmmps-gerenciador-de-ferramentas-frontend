@@ -223,7 +223,8 @@ const Ferramentas = () => {
   }
 
   const verificarPermissaoAdministrativa = () => {
-    return /admin|almoxarife/i.test(localStorage.getItem('user') || '');
+    const perfil = localStorage.getItem('perfil') || '';
+    return perfil === 'ADMIN' || perfil === 'ALMOXARIFE';
   };
 
   const fetchFerramentas = async () => {

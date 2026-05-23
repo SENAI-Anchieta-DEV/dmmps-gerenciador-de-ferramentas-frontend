@@ -15,35 +15,35 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import API_BASE_URL from '../apiConfig';
 
 const mockOcorrencias = [
-  { idOcorrencia: 'mock-1', dataOcorrencia: '22/04/2026', ferramentaNome: 'Martelo Perfurador Bosch', usuarioNome: 'João Silva', descricao: 'Cabo com mau contato intermitente durante o uso.', gravidade: 'Média' },
-  { idOcorrencia: 'mock-2', dataOcorrencia: '20/04/2026', ferramentaNome: 'Chave de Fenda Kit 12pçs', usuarioNome: 'Maria Souza', descricao: 'Ponta da chave Philips 1/4 desgastada.', gravidade: 'Baixa' },
-  { idOcorrencia: 'mock-3', dataOcorrencia: '18/04/2026', ferramentaNome: 'Serra Tico-Tico Dewalt', usuarioNome: 'Carlos Lima', descricao: 'Motor apresentando superaquecimento após 10 min.', gravidade: 'Alta' },
+  { id: 'mock-1', dataAbertura: '2026-04-22T08:30:00', titulo: 'Defeito Mecânico', ferramenta: { nome: 'Martelo Perfurador Bosch' }, usuario: { nome: 'João Silva' }, descricao: 'Cabo com mau contato intermitente durante o uso.', statusOcorrencia: 'EM_MANUTENCAO' },
+  { id: 'mock-2', dataAbertura: '2026-04-20T14:15:00', titulo: 'Desgaste Natural', ferramenta: { nome: 'Chave de Fenda Kit 12pçs' }, usuario: { nome: 'Maria Souza' }, descricao: 'Ponta da chave Philips 1/4 desgastada.', statusOcorrencia: 'RESOLVIDA' },
+  { id: 'mock-3', dataAbertura: '2026-04-18T11:00:00', titulo: 'Falha Elétrica', ferramenta: { nome: 'Serra Tico-Tico Dewalt' }, usuario: { nome: 'Carlos Lima' }, descricao: 'Motor apresentando superaquecimento após 10 min.', statusOcorrencia: 'DESCARTADA' },
 ];
 
 const OcorrenciaCard = ({ item }) => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
 
-  const getStatusStyle = (gravidade) => {
+  const getStatusStyle = (statusOcorrencia) => {
     const styles = {
-      'Alta': { color: '#FF6961', label: 'Alta' },
-      'Média': { color: '#FFB347', label: 'Média' },
-      'Baixa': { color: '#85FF80', label: 'Baixa' }
+      'EM_MANUTENCAO': { color: '#FFB347', label: 'Em Manutenção' },
+      'RESOLVIDA': { color: '#85FF80', label: 'Resolvida' },
+      'DESCARTADA': { color: '#FF4747', label: 'Descartada' }
     };
-    return styles[gravidade] || { color: '#9e9e9e', label: 'Média' };
+    return styles[statusOcorrencia] || { color: '#9e9e9e', label: statusOcorrencia || 'Pendente' };
   };
 
-  const idRaw = item.idOcorrencia || item.id_ocorrencia || item.id;
-  const idExibicao = idRaw ? `#ID-${String(idRaw).substring(0, 8)}...` : '#ID-S/N';
+  // 🌟 CONFIGURADO EXATAMENTE CONFORME O SEU DTO REAL DO JAVA
+  const idExibicao = item.id ? `#ID-${String(item.id).substring(0, 8).toUpperCase()}` : '#ID-S/N';
+  const tituloExibicao = item.titulo || 'Ocorrência Operacional';
+  const ferramentaExibicao = item.nomeFerramenta || 'Ativo Não Identificado';
+  const usuarioExibicao = item.nomeUsuario || 'Técnico do Sistema';
+  const descricaoExibicao = item.descricao || 'Sem especificações fornecidas.';
   
-  const ferramentaExibicao = item.ferramentaNome || item.nome_ferramenta || (item.ferramenta && item.ferramenta.nome) || `Ferramenta...`;
-  const usuarioExibicao = item.usuarioNome || item.nome_usuario || (item.usuario && item.usuario.nome) || 'Usuário do Sistema';
-  const descricaoExibicao = item.descricao || 'Sem descrição fornecida';
+  const dataRaw = item.dataAbertura;
+  const dataExibicao = dataRaw ? new Date(dataRaw).toLocaleDateString('pt-BR') : 'Recente';
   
-  const dataRaw = item.dataOcorrencia || item.data || item.createdAt;
-  const dataExibicao = dataRaw ? (dataRaw.includes('-') ? new Date(dataRaw).toLocaleDateString('pt-BR') : dataRaw) : 'Recente';
-  
-  const status = getStatusStyle(item.gravidade || 'Média');
+  const status = getStatusStyle(item.statusOcorrencia);
 
   return (
     <Paper 
@@ -65,9 +65,12 @@ const OcorrenciaCard = ({ item }) => {
 
       <Box sx={{ flex: 1.5, minWidth: 0 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700, fontFamily: 'Poppins', lineHeight: 1.3, color: 'text.primary' }}>
+          {tituloExibicao}
+        </Typography>
+        <Typography variant="body2" sx={{ fontFamily: 'Poppins', color: 'text.secondary', fontSize: '0.85rem', mt: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {descricaoExibicao}
         </Typography>
-        <Typography variant="body2" sx={{ fontFamily: '"JetBrains Mono", monospace', color: 'text.secondary', fontSize: '0.8rem', mt: 0.5, fontWeight: 600 }}>
+        <Typography variant="body2" sx={{ fontFamily: '"JetBrains Mono", monospace', color: 'text.secondary', fontSize: '0.75rem', mt: 0.5, fontWeight: 600 }}>
           {idExibicao}
         </Typography>
       </Box>
@@ -77,13 +80,13 @@ const OcorrenciaCard = ({ item }) => {
           {ferramentaExibicao}
         </Typography>
         <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'Poppins', display: 'block', mt: 0.3 }}>
-          Relatado por: {usuarioExibicao}
+          Responsável: {usuarioExibicao}
         </Typography>
       </Box>
 
       <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
         <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', fontFamily: 'Poppins', display: 'block', mb: 1 }}>
-          {dataExibicao}
+          Abertura: {dataExibicao}
         </Typography>
         <Chip label={status.label} size="small" sx={{ fontWeight: 800, fontFamily: 'Poppins', fontSize: '0.65rem', color: status.color, border: `1.5px solid ${status.color}`, bgcolor: 'transparent' }} />
       </Box>
@@ -120,36 +123,44 @@ const Ocorrencias = () => {
   };
 
   const carregarOcorrencias = async () => {
-    try {
-      const url = API_BASE_URL.includes('localhost:8080') ? '/ocorrencias' : `${API_BASE_URL}/ocorrencias`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: { 
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
+      try {
+        // 🔐 Identifica o perfil do usuário para chamar o endpoint correto do Java
+        const perfilUsuario = localStorage.getItem('perfil') || '';
+        const isAdminOuAlmoxarife = perfilUsuario === 'ADMIN' || perfilUsuario === 'ALMOXARIFE';
+        
+        // Se for Admin/Almoxarife vê tudo, se for Técnico bate em /minhas
+        const endpoint = isAdminOuAlmoxarife ? '/ocorrencias' : '/ocorrencias/minhas';
+        const url = `${API_BASE_URL}${endpoint}`;
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: { 
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setOcorrenciasList(data);
+          setIsSandbox(false);
+        } else if (response.status === 403) {
+          alert('Erro 403: Seu perfil não tem permissão para acessar esta rota.');
+        } else {
+          alert(`Erro ${response.status}: Ativando Modo Sandbox com dados de simulação.`);
+          setOcorrenciasList(mockOcorrencias);
+          setIsSandbox(true);
         }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        // 🎯 LOGICA DE ESTADO VAZIO: Se a API respondeu OK, salvamos exatamente o que veio (mesmo que seja um array vazio [])
-        setOcorrenciasList(data);
-        setIsSandbox(false);
-      } else {
-        alert('Aviso: Não foi possível autenticar ou carregar os dados. Ativando Modo Sandbox com dados locais de simulação.');
+      } catch (err) {
+        console.error("Erro na comunicação com a API:", err);
         setOcorrenciasList(mockOcorrencias);
         setIsSandbox(true);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      alert('Erro de Conexão: Servidor Java API indisponível. Ativando Modo Sandbox automaticamente.');
-      setOcorrenciasList(mockOcorrencias);
-      setIsSandbox(true);
-    } finally {
-      setLoading(false);
-    }
   };
 
-  useEffect(() => { carregarOcorrencias(); }, []);
+    useEffect(() => { carregarOcorrencias(); }, []);
 
   const handleSalvar = async (e) => {
     e.preventDefault();
@@ -157,7 +168,7 @@ const Ocorrencias = () => {
     const payload = { ferramentaId: ferramentaId.trim(), titulo: titulo.trim(), descricao: descricao.trim() };
 
     try {
-      const url = API_BASE_URL.includes('localhost:8080') ? '/ocorrencias' : `${API_BASE_URL}/ocorrencias`;
+      const url = `${API_BASE_URL}/ocorrencias`; // 🌟 Corrigido para apontar sempre para o back-end real
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -178,14 +189,15 @@ const Ocorrencias = () => {
         alert(`O servidor recusou os dados.\n\nRetorno do Java:\n${textoErro || 'Erro de validação (500/400)'}`);
       }
     } catch (error) {
-      alert('Servidor indisponível. Relato armazenado localmente no Sandbox.');
+      alert('Servidor indisponível. Salvando em escopo volátil local.');
       const novaOcorrenciaLocal = {
-        idOcorrencia: 'local-' + Date.now(),
-        ferramentaNome: 'Ativo Selecionado',
-        usuarioNome: 'Usuário Conectado',
+        id: 'local-' + Date.now(),
+        titulo: titulo,
+        ferramenta: { nome: 'Ativo Selecionado' },
+        usuario: { nome: 'Usuário Conectado' },
         descricao: descricao,
-        gravidade: 'Média',
-        dataOcorrencia: new Date().toLocaleDateString('pt-BR')
+        statusOcorrencia: 'EM_MANUTENCAO',
+        dataAbertura: new Date().toISOString()
       };
       setOcorrenciasList([novaOcorrenciaLocal, ...ocorrenciasList]);
       setExibirCadastro(false);
@@ -198,7 +210,10 @@ const Ocorrencias = () => {
 
   const ocorrenciasFiltradas = ocorrenciasList.filter(o => {
     const desc = (o.descricao || '').toLowerCase();
-    return desc.includes(buscaInterna.toLowerCase());
+    const tit = (o.titulo || '').toLowerCase();
+    const fer = (o.ferramenta?.nome || '').toLowerCase();
+    const term = buscaInterna.toLowerCase();
+    return desc.includes(term) || tit.includes(term) || fer.includes(term);
   });
 
   return (
@@ -253,7 +268,7 @@ const Ocorrencias = () => {
           <Box sx={{ mb: 4, display: 'flex', gap: 2 }}>
             <TextField 
               fullWidth 
-              placeholder="Buscar por ID ou descrição..." 
+              placeholder="Buscar por ferramenta, título ou descrição..." 
               size="small" 
               value={buscaInterna} 
               onChange={(e) => setBuscaInterna(e.target.value)} 
@@ -274,7 +289,6 @@ const Ocorrencias = () => {
             </Alert>
           )}
 
-          {/* INTEGRAÇÃO DO EMPTY STATE IGUAL À TELA "EM USO" */}
           {ocorrenciasFiltradas.length === 0 ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px', width: '100%' }}>
               <Typography variant="body1" sx={{ fontFamily: 'Poppins', color: 'text.secondary', fontWeight: 500 }}>
@@ -284,7 +298,7 @@ const Ocorrencias = () => {
           ) : (
             <Stack spacing={2}>
               {ocorrenciasFiltradas.map((item, index) => (
-                <OcorrenciaCard key={item.idOcorrencia || index} item={item} />
+                <OcorrenciaCard key={item.id || index} item={item} />
               ))}
             </Stack>
           )}

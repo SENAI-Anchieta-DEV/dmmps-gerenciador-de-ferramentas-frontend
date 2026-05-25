@@ -215,7 +215,6 @@ const Ferramentas = () => {
     setConfirmarDeleteOpen(true);
   }
 
-  // 🌟 FUNÇÃO QUE DISPARA O POP-UP DE EMPRÉSTIMO/DEVOLUÇÃO
   function acionarAcaoEmprestimo(ferramenta, tipo) {
     setToolEmprestimo(ferramenta);
     setTipoAcaoEmprestimo(tipo);
@@ -258,17 +257,10 @@ const Ferramentas = () => {
     setEmprestimoLoading(true);
     
     const token = localStorage.getItem('token');
-    
-    // 🧱 GARANTIA: Se API_BASE_URL falhar, usamos o fallback do seu ambiente
     const urlBase = API_BASE_URL || 'http://localhost:8080';
     const urlFinal = tipoAcaoEmprestimo === 'SOLICITAR' 
       ? `${urlBase}/emprestimos` 
       : `${urlBase}/emprestimos/${toolEmprestimo.id}/devolucao`;
-
-    console.log("=== DESBUGANDO FLUXO TOOLHUB ===");
-    console.log("Ação executada:", tipoAcaoEmprestimo);
-    console.log("URL chamada:", urlFinal);
-    console.log("Payload enviado:", JSON.stringify({ ferramentaId: toolEmprestimo.id }));
 
     try {
       const response = await fetch(urlFinal, {
@@ -284,21 +276,16 @@ const Ferramentas = () => {
         )
       }); 
 
-      // Enviar apenas ferramentaId no POST. O back-end extrai o usuário autenticado direto do Token JWT por segurança, evitando conflito de IDs.
-
       if (response.ok) {
         setEmprestimoModalOpen(false);
         setToolEmprestimo(null);
-        fetchFerramentas(); // 🔄 Atualiza a tela na hora!
+        fetchFerramentas(); 
       } else {
-        // Se o Java responder com erro, vamos ler o JSON de erro real dele
         const errData = await response.json().catch(() => ({}));
-        console.error("Erro retornado pelo Java:", errData);
         alert(`Erro ${response.status}: ${errData.detail || 'Acesso negado ou restrição de negócio.'}`);
       }
     } catch (err) {
-      console.error("Erro de rede/comunicação no fetch:", err);
-      alert(`Erro na comunicação com o servidor: ${err.message}. Verifique se o seu Java na porta 8080 está rodando!`);
+      alert(`Erro na comunicação com o servidor: ${err.message}`);
     } finally {
       setEmprestimoLoading(false);
     }
@@ -375,19 +362,15 @@ const Ferramentas = () => {
 
   const termo = (searchTerm || '').toLowerCase();
   
-  // 🌟 Filtro inteligente: Na página de ferramentas normais, você pode querer listar tudo.
-  // Se for a rota "Em Uso", bastará fazer o filter por 'EM_USO'.
+  // 🌟 FILTER OPERACIONAL CIRÚRGICO: Agora lista EXCLUSIVAMENTE ferramentas disponíveis para TODOS os atores, evitando duplicidade com o Em Uso
   const ferramentasFiltradas = ferramentas.filter(f => {
-    // 🔍 1. Verifica se o nome ou patrimônio bate com o termo de busca do header
     const correspondeBusca = (f.nome || '').toLowerCase().includes(termo) || 
                              (f.codigoPatrimonio || '').toLowerCase().includes(termo);
     
-    // 🔐 2. REGRA OPERACIONAL DO TÉCNICO: 
-    // Se for Admin/Almoxarife, exibe tudo. Se for Técnico, esconde o que já está EM_USO
-    const podeVerTudo = verificarPermissaoAdministrativa();
-    const estáDisponivel = (f.status || '').toUpperCase() === 'DISPONIVEL';
+    // 🔐 REGRA DE ESTOQUE: Apenas o que estiver com o status "DISPONIVEL" real entra nesta página
+    const estaDisponivel = (f.status || '').toUpperCase() === 'DISPONIVEL';
 
-    return correspondeBusca && (podeVerTudo || estáDisponivel);
+    return correspondeBusca && estaDisponivel;
   });
 
   if (exibirCadastro) {
@@ -468,21 +451,18 @@ const Ferramentas = () => {
 
       {ferramentasFiltradas.length === 0 && !loading && !erro && (
         <Typography variant="body1" sx={{ mt: 6, textAlign: 'center', color: 'text.secondary', fontFamily: 'Poppins' }}>
-          {searchTerm ? 'Nenhuma ferramenta corresponde à sua busca.' : 'Nenhuma ferramenta cadastrada no sistema.'}
+          {searchTerm ? 'Nenhuma ferramenta corresponde à sua busca.' : 'Nenhuma ferramenta disponível no estoque momento.'}
         </Typography>
       )}
 
-      {/* 🌟 NOVO MODAL DE CONFIRMAÇÃO DE EMPRÉSTIMO / DEVOLUÇÃO */}
+      {/* MODAL DE CONFIRMAÇÃO DE EMPRÉSTIMO */}
       <Dialog open={emprestimoModalOpen} onClose={() => setEmprestimoModalOpen(false)} PaperProps={{ sx: { borderRadius: '20px', p: 1, bgcolor: isLight ? '#ffffff' : '#14213D' } }}>
         <DialogTitle sx={{ fontFamily: 'Poppins', fontWeight: 700 }}>
-          {tipoAcaoEmprestimo === 'SOLICITAR' ? 'Confirmar Solicitação de Empréstimo?' : 'Confirmar Devolução de Ferramenta?'}
+          Confirmar Solicitação de Empréstimo?
         </DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ color: 'text.secondary', fontFamily: 'Poppins' }}>
-            {tipoAcaoEmprestimo === 'SOLICITAR' 
-              ? `Você está prestes a retirar a ferramenta ${toolEmprestimo?.nome} (Patrimônio: ${toolEmprestimo?.codigoPatrimonio}). O status do ativo mudará para EM USO.`
-              : `Deseja registrar a devolução da ferramenta ${toolEmprestimo?.nome} (Patrimônio: ${toolEmprestimo?.codigoPatrimonio}) de volta para o estoque?`
-            }
+            Você está prestes a retirar a ferramenta <strong>{toolEmprestimo?.nome}</strong> (Patrimônio: {toolEmprestimo?.codigoPatrimonio}). O status do ativo mudará para EM USO.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -495,10 +475,10 @@ const Ferramentas = () => {
               textTransform: 'none', 
               fontFamily: 'Poppins', 
               fontWeight: 700, 
-              bgcolor: tipoAcaoEmprestimo === 'SOLICITAR' ? (isLight ? '#14213D' : '#00f2ff') : '#FFB347', 
-              color: tipoAcaoEmprestimo === 'SOLICITAR' && !isLight ? '#14213D' : 'white', 
+              bgcolor: isLight ? '#14213D' : '#00f2ff', 
+              color: !isLight ? '#14213D' : 'white', 
               borderRadius: '10px',
-              '&:hover': { bgcolor: tipoAcaoEmprestimo === 'SOLICITAR' ? 'primary.dark' : '#e09a36' }
+              '&:hover': { bgcolor: 'primary.dark' }
             }}
           >
             {emprestimoLoading ? <CircularProgress size={20} color="inherit" /> : 'Confirmar'}

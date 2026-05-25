@@ -1,11 +1,12 @@
-import React from 'react';
-import { Box, Typography, Grid, Paper, Avatar, useTheme, Stack, Divider, IconButton, LinearProgress } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Grid, Paper, Avatar, useTheme, Stack, Divider, IconButton, LinearProgress, CircularProgress, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import HandymanIcon from '@mui/icons-material/Handyman';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+
+import API_BASE_URL from '../apiConfig';
 
 // Componente para os Cards de Métricas (KPIs Confortáveis)
 const CardMetrica = ({ titulo, valor, icone, corStatus, progressoSimulado }) => {
@@ -16,7 +17,7 @@ const CardMetrica = ({ titulo, valor, icone, corStatus, progressoSimulado }) => 
     <Paper
       elevation={0}
       sx={{
-        p: 3, // CORREÇÃO: Voltou para o tamanho confortável anterior para não forçar a vista
+        p: 3,
         borderRadius: '20px',
         border: '1px solid',
         borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)',
@@ -30,6 +31,7 @@ const CardMetrica = ({ titulo, valor, icone, corStatus, progressoSimulado }) => 
         transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease',
         '&:hover': {
           transform: 'translateY(-5px)',
+          // 🌟 RESTAURADO: Efeito Glow/Neon comercial baseado no status e tema
           boxShadow: isLight 
             ? '0 10px 25px rgba(20, 33, 61, 0.06)' 
             : `0 0 25px ${corStatus === '#14213D' ? 'rgba(0, 242, 255, 0.25)' : corStatus + '40'}`,
@@ -52,10 +54,10 @@ const CardMetrica = ({ titulo, valor, icone, corStatus, progressoSimulado }) => 
           sx={{ 
             bgcolor: `${corStatus}15`, 
             color: corStatus, 
-            width: 52, // CORREÇÃO: Tamanho confortável restaurado
+            width: 52,
             height: 52,
             border: `1px solid ${corStatus}30`,
-            boxShadow: isLight ? 'none' : `0 0 10px ${corStatus}20`
+            boxShadow: isLight ? 'none' : `0 0 10px ${corStatus}20` // 🌟 RESTAURADO: Glow interno no Avatar
           }}
         >
           {icone}
@@ -71,7 +73,7 @@ const CardMetrica = ({ titulo, valor, icone, corStatus, progressoSimulado }) => 
             borderRadius: 2,
             bgcolor: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)',
             '& .MuiLinearProgress-bar': {
-              bgcolor: corStatus === '#14213D' && !isLight ? '#00f2ff' : corStatus,
+              bgcolor: corStatus === '#14213D' && !isLight ? '#00f2ff' : corStatus, // 🌟 RESTAURADO: Destaque Ciano na barra escura
               borderRadius: 2
             }
           }}
@@ -92,7 +94,7 @@ const ItemAtividade = ({ id, ferramenta, info, statusCor, statusTexto }) => {
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between', 
-        py: 1.8, // CORREÇÃO: Altura original e confortável mantida
+        py: 1.8,
         px: 1,
         borderRadius: '10px',
         transition: 'background-color 0.2s ease',
@@ -115,6 +117,7 @@ const ItemAtividade = ({ id, ferramenta, info, statusCor, statusTexto }) => {
       </Stack>
       
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        {/* 🌟 RESTAURADO: Glow e pulso visual nos pequenos leds de status dos itens */}
         <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: statusCor, boxShadow: `0 0 10px ${statusCor}, 0 0 4px ${statusCor}` }} />
         <Typography variant="caption" sx={{ fontFamily: 'Poppins', fontWeight: 600, color: statusCor, letterSpacing: '0.3px' }}>
           {statusTexto}
@@ -130,129 +133,224 @@ const DashboardInicio = () => {
   const isLight = theme.palette.mode === 'light';
   const corTextoPrincipal = isLight ? '#14213D' : '#f5f5f5';
 
+  const [loading, setLoading] = useState(true);
+  const [isSandbox, setIsSandbox] = useState(false);
+  const [metrics, setMetrics] = useState({ total: 0, disponiveis: 0, emUso: 0 });
+  const [movimentacoes, setMovimentacoes] = useState([]);
+  const [alertas, setAlertas] = useState([]);
+
+  const carregarDadosDashboard = async () => {
+    setLoading(true);
+    const token = localStorage.getItem('token');
+    const perfilUsuario = localStorage.getItem('perfil') || '';
+    const isAdminOuAlmoxarife = perfilUsuario === 'ADMIN' || perfilUsuario === 'ALMOXARIFE';
+
+    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    try {
+      const resTools = await fetch(`${API_BASE_URL}/ferramentas`, { method: 'GET', headers });
+      const ferramentasLista = resTools.ok ? await resTools.json() : [];
+
+      const urlMovimentacao = isAdminOuAlmoxarife ? `${API_BASE_URL}/emprestimos` : `${API_BASE_URL}/emprestimos/meus`;
+      const resMov = await fetch(urlMovimentacao, { method: 'GET', headers });
+      const movLista = resMov.ok ? await resMov.json() : [];
+
+      const urlOcorrencias = isAdminOuAlmoxarife ? `${API_BASE_URL}/ocorrencias` : `${API_BASE_URL}/ocorrencias/minhas`;
+      const resOco = await fetch(urlOcorrencias, { method: 'GET', headers });
+      const ocoLista = resOco.ok ? await resOco.json() : [];
+
+      if (resTools.ok) {
+        const total = ferramentasLista.length;
+        const disponiveis = ferramentasLista.filter(f => (f.status || '').toUpperCase() === 'DISPONIVEL').length;
+        const emUso = ferramentasLista.filter(f => (f.status || '').toUpperCase() === 'EM_USO').length;
+
+        setMetrics({ total, disponiveis, emUso });
+
+        const mapaFerramentas = {};
+        ferramentasLista.forEach(f => { mapaFerramentas[f.id] = f; });
+
+        const movVinculadas = movLista.map(m => {
+          const fId = m.ferramentaId || m.ferramenta?.id;
+          return {
+            ...m,
+            statusAtualEstoque: fId && mapaFerramentas[fId] ? mapaFerramentas[fId].status : null
+          };
+        });
+        setMovimentacoes(movVinculadas);
+        
+        const ativas = ocoLista.filter(o => {
+          const st = (o.statusOcorrencia || '').toUpperCase();
+          const fId = o.ferramenta?.id || o.ferramentaId;
+          const ferramentaEstoque = fId ? mapaFerramentas[fId] : null;
+          const statusFerramenta = (ferramentaEstoque?.status || '').toUpperCase();
+
+          return st !== 'RESOLVIDA' && 
+                 st !== 'FECHADA' && 
+                 st !== '' && 
+                 statusFerramenta !== 'DESCARTADA' && 
+                 statusFerramenta !== 'INDISPONIVEL';
+        });
+
+        const alertasTratados = ativas.map(o => { 
+          const fId = o.ferramenta?.id || o.ferramentaId;
+          const ferramentaEstoque = fId && mapaFerramentas[fId] ? mapaFerramentas[fId] : null;
+          const patrimonioValidado = o.codigoPatrimonio || 
+                                     o.ferramenta?.codigoPatrimonio || 
+                                     (ferramentaEstoque ? ferramentaEstoque.codigoPatrimonio : 'N/A');
+
+          return {
+            ...o,
+            patrimonioExibicao: patrimonioValidado
+          };
+        });
+
+        setAlertas(alertasTratados);
+        setIsSandbox(false);
+      } else {
+        executarFallbackMock();
+      }
+    } catch (err) {
+      console.error(err);
+      executarFallbackMock();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const executarFallbackMock = () => {
+    setMetrics({ total: 148, disponiveis: 32, emUso: 5 });
+    setMovimentacoes([
+      { id: '1', dataDevolucao: null, codigoPatrimonio: '1234', nomeFerramenta: 'Parafusadeira Makita', nomeUsuario: 'Ricardo Santos', estadoConservacao: 'BOM_ESTADO', statusAtualEstoque: 'EM_USO' },
+      { id: '2', dataDevolucao: '2026-05-18', codigoPatrimonio: '1235', nomeFerramenta: 'Multímetro Fluke', nomeUsuario: 'Ana Oliveira', estadoConservacao: 'DANIFICADA', statusAtualEstoque: 'DISPONIVEL' }
+    ]);
+    setAlertas([{ id: '1', patrimonioExibicao: '1236', nomeFerramenta: 'Serra Dewalt', titulo: 'Superaquecimento', estadoConservacao: 'DANIFICADA' }]);
+    setIsSandbox(true);
+  };
+
+  useEffect(() => { carregarDadosDashboard(); }, []);
+
+  const pctDisponivel = metrics.total > 0 ? Math.round((metrics.disponiveis / metrics.total) * 100) : 0;
+  const pctEmUso = metrics.total > 0 ? Math.round((metrics.emUso / metrics.total) * 100) : 0;
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}>
+        <CircularProgress sx={{ color: isLight ? 'primary.main' : '#00f2ff' }} />
+      </Box>
+    );
+  }
+
   return (
-    <Box sx={{ width: '100%', pb: 2 }}> 
-      
-      <Typography 
-        variant="h4" 
-        sx={{ 
-          mb: 3, // Distanciamento equilibrado
-          fontFamily: 'Poppins, sans-serif', 
-          fontWeight: 800,
-          color: corTextoPrincipal,
-          fontSize: { xs: '1.5rem', sm: '1.75rem' },
-          letterSpacing: '-0.5px'
-        }}
-      >
+    <Box sx={{ width: '100%', pb: 2 }}>
+      <Typography variant="h4" sx={{ mb: 3, fontFamily: 'Poppins, sans-serif', fontWeight: 800, color: corTextoPrincipal, fontSize: { xs: '1.5rem', sm: '1.75rem' }, letterSpacing: '-0.5px' }}>
         Dashboard Geral
       </Typography>
 
-      {/* SEÇÃO 1: CARDS DE MÉTRICAS */}
-      <Grid container spacing={3} sx={{ mb: 4 }}> 
-        <Grid item xs={12} sm={6} lg={3}>
-          <CardMetrica titulo="Total do Estoque" valor="148" icone={<ConstructionIcon />} corStatus={isLight ? '#14213D' : '#00f2ff'} progressoSimulado={100} />
+      {isSandbox && (
+        <Alert severity="info" sx={{ mb: 3, borderRadius: '12px', fontFamily: 'Poppins', fontWeight: 500 }}>
+          <b>Modo Sandbox:</b> Exibindo métricas e logs simulados da planta fabril.
+        </Alert>
+      )}
+
+      {/* CARDS SUPERIORES */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6} lg={4}>
+          <CardMetrica titulo="Total do Estoque" valor={metrics.total.toString().padStart(2, '0')} icone={<ConstructionIcon />} corStatus={isLight ? '#14213D' : '#00f2ff'} progressoSimulado={100} />
         </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
-          <CardMetrica titulo="Ferramentas Disponíveis" valor="32" icone={<HandymanIcon />} corStatus="#85FF80" progressoSimulado={22} />
+        <Grid item xs={12} sm={6} lg={4}>
+          <CardMetrica titulo="Ferramentas Disponíveis" valor={metrics.disponiveis.toString().padStart(2, '0')} icone={<HandymanIcon />} corStatus="#85FF80" progressoSimulado={pctDisponivel} />
         </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
-          <CardMetrica titulo="Em Uso" valor="05" icone={<WarningAmberIcon />} corStatus="#FFB347" progressoSimulado={8} />
-        </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
-          {/*<CardMetrica titulo="Descartes" valor="03" icone={<AccessTimeIcon />} corStatus="#FF6961" progressoSimulado={4} />*/} 
+        <Grid item xs={12} sm={6} lg={4}>
+          <CardMetrica titulo="Em Uso Ativo" valor={metrics.emUso.toString().padStart(2, '0')} icone={<WarningAmberIcon />} corStatus="#FFB347" progressoSimulado={pctEmUso} />
         </Grid>
       </Grid>
 
-      {/* SEÇÃO 2: MATRIZ ANALÍTICA 50/50 FIXA EM FLEXBOX */}
-      <Box sx={{ 
-        display: 'flex', 
-        gap: 3, 
-        alignItems: 'stretch', 
-        width: '100%',
-        flexDirection: { xs: 'column', md: 'row' }
-      }}>
+      {/* PAINÉIS INFERIORES */}
+      <Box sx={{ display: 'flex', gap: 3, alignItems: 'stretch', width: '100%', flexDirection: { xs: 'column', md: 'row' } }}>
         
         {/* Painel Esquerdo: Últimas Movimentações */}
-        <Paper 
-          elevation={0} 
-          sx={{ 
-            flex: 1, 
-            p: 3, 
-            borderRadius: '20px', 
-            border: '1px solid', 
-            borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)',
-            bgcolor: isLight ? '#ffffff' : 'rgba(20, 33, 61, 0.7)',
-            backdropFilter: 'blur(10px)',
-            display: 'flex',
-            flexDirection: 'column',
-            transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
-            '&:hover': { 
-              borderColor: 'rgba(133, 255, 128, 0.3)',
-              boxShadow: isLight ? 'none' : '0 0 20px rgba(133, 255, 128, 0.05)'
-            }
-          }}
-        >
+        <Paper elevation={0} sx={{ flex: 1, p: 3, borderRadius: '20px', border: '1px solid', borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)', bgcolor: isLight ? '#ffffff' : 'rgba(20, 33, 61, 0.7)', backdropFilter: 'blur(10px)', display: 'flex', flexDirection: 'column', transition: 'border-color 0.3s ease, box-shadow 0.3s ease', '&:hover': { borderColor: 'rgba(133, 255, 128, 0.3)', boxShadow: isLight ? 'none' : '0 0 20px rgba(133, 255, 128, 0.05)' } }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6" sx={{ fontFamily: 'Poppins', fontWeight: 700, color: corTextoPrincipal }}>
-              Últimas Movimentações
-            </Typography>
-            <IconButton 
-              size="small" 
-              onClick={() => navigate('/dashboard/em-uso')} 
-              sx={{ color: corTextoPrincipal, '&:hover': { bgcolor: 'action.hover' } }}
-            >
-              <ArrowForwardIcon fontSize="small" />
-            </IconButton>
+            <Typography variant="h6" sx={{ fontFamily: 'Poppins', fontWeight: 700, color: corTextoPrincipal }}>Últimas Movimentações</Typography>
+            <IconButton size="small" onClick={() => navigate('/dashboard/em-uso')} sx={{ color: corTextoPrincipal, '&:hover': { bgcolor: 'action.hover' } }}><ArrowForwardIcon fontSize="small" /></IconButton>
           </Box>
           <Divider sx={{ borderColor: isLight ? 'divider' : 'rgba(255,255,255,0.05)' }} />
-          <Stack spacing={0.5} sx={{ mt: 1, flexGrow: 1, justifyContent: 'center' }}>
-            <ItemAtividade id="#ID-1024" ferramenta="Parafusadeira Makita" info="Retirado por Ricardo Santos" statusCor="#85FF80" statusTexto="Em Uso" />
-            <Divider sx={{ borderColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.02)' }} />
-            <ItemAtividade id="#ID-1088" ferramenta="Multímetro Digital Fluke" info="Devolvido por Ana Oliveira" statusCor="#b0bec5" statusTexto="No Estoque" />
-            <Divider sx={{ borderColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.02)' }} />
-            <ItemAtividade id="#ID-1102" ferramenta="Serra Tico-Tico Dewalt" info="Retirado por Carlos Lima" statusCor="#85FF80" statusTexto="Em Uso" />
+          
+          <Stack spacing={0.5} sx={{ flexGrow: 1, justifyContent: 'flex-start', maxHeight: '420px', overflowY: 'auto', pr: 0.5 }}>
+            {movimentacoes.map((mov, idx) => {
+              const codigoReal = mov.codigoPatrimonio || mov.ferramenta?.codigoPatrimonio || 'N/A';
+              const nomeReal = mov.nomeFerramenta || mov.ferramenta?.nome || 'Ativo Omissor';
+              const usuarioReal = mov.nomeUsuario || mov.usuario?.nome || 'Operador';
+              
+              const isDevolvido = mov.dataDevolucao || (mov.status || '').toUpperCase() === 'FINALIZADO';
+              const isDanificadaRetirada = (mov.estadoConservacao || '').toUpperCase() === 'DANIFICADA';
+              const statusAtualItem = (mov.statusAtualEstoque || '').toUpperCase();
+
+              let txtStatus = "Em Uso";
+              let corStatus = "#85FF80";
+
+              if (isDevolvido) {
+                if (statusAtualItem === 'DISPONIVEL') {
+                  txtStatus = "No Estoque";
+                  corStatus = "#b0bec5";
+                } else if (statusAtualItem === 'DESCARTADA' || statusAtualItem === 'INDISPONIVEL') {
+                  txtStatus = "Descartada (Fim de Vida)";
+                  corStatus = "#751A1A";
+                } else if (isDanificadaRetirada) {
+                  txtStatus = "Retida (Avaria)";
+                  corStatus = "#FF6961";
+                } else {
+                  txtStatus = "No Estoque";
+                  corStatus = "#b0bec5";
+                }
+              }
+
+              return (
+                <React.Fragment key={mov.id || idx}>
+                  {idx > 0 && <Divider sx={{ borderColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.02)' }} />}
+                  <ItemAtividade 
+                    id={`#${codigoReal}`} 
+                    ferramenta={nomeReal} 
+                    info={isDevolvido ? `Devolvido por ${usuarioReal}` : `Retirado por ${usuarioReal}`} 
+                    statusCor={corStatus} 
+                    statusTexto={txtStatus} 
+                  />
+                </React.Fragment>
+              );
+            })}
+            {movimentacoes.length === 0 && <Typography variant="caption" sx={{ py: 4, textAlign: 'center', color: 'text.secondary', fontFamily: 'Poppins' }}>Nenhum log registrado.</Typography>}
           </Stack>
         </Paper>
 
         {/* Painel Direito: Alertas Urgentes */}
-        <Paper 
-          elevation={0} 
-          sx={{ 
-            flex: 1, 
-            p: 3, 
-            borderRadius: '20px', 
-            border: '1px solid', 
-            borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)',
-            bgcolor: isLight ? '#ffffff' : 'rgba(20, 33, 61, 0.7)',
-            backdropFilter: 'blur(10px)',
-            display: 'flex',
-            flexDirection: 'column',
-            transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
-            '&:hover': { 
-              borderColor: 'rgba(255, 105, 97, 0.3)',
-              boxShadow: isLight ? 'none' : '0 0 20px rgba(255, 105, 97, 0.05)'
-            }
-          }}
-        >
+        <Paper elevation={0} sx={{ flex: 1, p: 3, borderRadius: '20px', border: '1px solid', borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)', bgcolor: isLight ? '#ffffff' : 'rgba(20, 33, 61, 0.7)', backdropFilter: 'blur(10px)', display: 'flex', flexDirection: 'column', transition: 'border-color 0.3s ease, box-shadow 0.3s ease', '&:hover': { borderColor: 'rgba(255, 105, 97, 0.3)', boxShadow: isLight ? 'none' : '0 0 20px rgba(255, 105, 97, 0.05)' } }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6" sx={{ fontFamily: 'Poppins', fontWeight: 700, color: corTextoPrincipal }}>
-              Alertas Urgentes
-            </Typography>
-            <IconButton 
-              size="small" 
-              onClick={() => navigate('/dashboard/ocorrencias')} 
-              sx={{ color: corTextoPrincipal, '&:hover': { bgcolor: 'action.hover' } }}
-            >
-              <ArrowForwardIcon fontSize="small" />
-            </IconButton>
+            <Typography variant="h6" sx={{ fontFamily: 'Poppins', fontWeight: 700, color: corTextoPrincipal }}>Alertas Urgentes</Typography>
+            <IconButton size="small" onClick={() => navigate('/dashboard/ocorrencias')} sx={{ color: corTextoPrincipal, '&:hover': { bgcolor: 'action.hover' } }}><ArrowForwardIcon fontSize="small" /></IconButton>
           </Box>
           <Divider sx={{ borderColor: isLight ? 'divider' : 'rgba(255,255,255,0.05)' }} />
-          <Stack spacing={0.5} sx={{ mt: 1, flexGrow: 1, justifyContent: 'center' }}>
-            <ItemAtividade id="#ID-8823" ferramenta="Serra Tico-Tico Dewalt" info="Superaquecimento do Motor" statusCor="#FF6961" statusTexto="Crítico" />
-            <Divider sx={{ borderColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.02)' }} />
-            <ItemAtividade id="#ID-8821" ferramenta="Martelo Perfurador Bosch" info="Mau contato no cabo de força" statusCor="#FFB347" statusTexto="Atenção" />
-            <Divider sx={{ borderColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.02)' }} />
-            <ItemAtividade id="#ID-8824" ferramenta="Multímetro Digital Fluke" info="Falha de iluminação no LCD" statusCor="#FF6961" statusTexto="Crítico" />
+          
+          <Stack spacing={0.5} sx={{ flexGrow: 1, justifyContent: 'flex-start', maxHeight: '420px', overflowY: 'auto', pr: 0.5 }}>
+            {alertas.map((alerta, idx) => {
+              const codigoReal = alerta.patrimonioExibicao;
+              const nomeReal = alerta.nomeFerramenta || alerta.ferramenta?.nome || 'Ativo Sem Nome';
+              const isCritico = (alerta.estadoConservacao || '').toUpperCase() === 'DANIFICADA';
+
+              return (
+                <React.Fragment key={alerta.id || idx}>
+                  {idx > 0 && <Divider sx={{ borderColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.02)' }} />}
+                  <ItemAtividade 
+                    id={`#${codigoReal}`} 
+                    ferramenta={nomeReal} 
+                    info={alerta.titulo || 'Avaria reportada'} 
+                    statusCor={isCritico ? "#FF6961" : "#FFB347"} 
+                    statusTexto={isCritico ? "Crítico" : "Atenção"} 
+                  />
+                </React.Fragment>
+              );
+            })}
+            {/* 🌟 RESTAURADO: Cor temática de sucesso (#85FF80) para a planta limpa */}
+            {alertas.length === 0 && <Typography variant="caption" sx={{ py: 4, textAlign: 'center', color: '#85FF80', fontWeight: 600, fontFamily: 'Poppins' }}>Planta 100% operacional. Sem ocorrências em aberto!</Typography>}
           </Stack>
         </Paper>
 

@@ -14,6 +14,7 @@ import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import PeopleIcon from '@mui/icons-material/People'; 
+import HistoryIcon from '@mui/icons-material/History'; // 🌟 ADICIONADO: Import do ícone de histórico
 
 import API_BASE_URL from '../apiConfig'; // Puxa a url do seu back-end automaticamente
 
@@ -34,13 +35,14 @@ const Layout = ({ toggleColorMode }) => {
 
   // 🧱 ITENS DO MENU REALOCADOS PARA DENTRO DO ESCOPO DE FILTRAGEM DINÂMICA
   const menuItems = [
-    { text: 'Menu', icon: <MenuOpenIcon />, path: null, restrito: false }, 
-    { text: 'Início', icon: <DashboardIcon />, path: '/dashboard', restrito: false },
-    { text: 'Em uso', icon: <ConstructionIcon />, path: '/dashboard/em-uso', restrito: false },
-    { text: 'Ferramentas', icon: <SettingsIcon />, path: '/dashboard/ferramentas', restrito: false },
-    { text: 'Ocorrências', icon: <WarningIcon />, path: '/dashboard/ocorrencias', restrito: false },
-    { text: 'Novo Perfil', icon: <AccountCircleIcon />, path: '/dashboard/perfil/cadastrar', restrito: true }, // 🔒 Administrativo
-    { text: 'Lista de Perfis', icon: <PeopleIcon />, path: '/dashboard/perfil/listar', restrito: true },   // 🔒 Administrativo
+    { text: 'Menu', icon: <MenuOpenIcon />, path: null, restrito: false, exclusivoTecnico: false }, 
+    { text: 'Início', icon: <DashboardIcon />, path: '/dashboard', restrito: false, exclusivoTecnico: false },
+    { text: 'Em uso', icon: <ConstructionIcon />, path: '/dashboard/em-uso', restrito: false, exclusivoTecnico: false },
+    { text: 'Ferramentas', icon: <SettingsIcon />, path: '/dashboard/ferramentas', restrito: false, exclusivoTecnico: false },
+    { text: 'Ocorrências', icon: <WarningIcon />, path: '/dashboard/ocorrencias', restrito: false, exclusivoTecnico: false },
+    { text: 'Histórico', icon: <HistoryIcon />, path: '/dashboard/historico', restrito: false, exclusivoTecnico: true }, // 🌟 ADICIONADO: Aba exclusiva do Técnico para histórico pessoal
+    { text: 'Novo Perfil', icon: <AccountCircleIcon />, path: '/dashboard/perfil/cadastrar', restrito: true, exclusivoTecnico: false }, // 🔒 Administrativo
+    { text: 'Lista de Perfis', icon: <PeopleIcon />, path: '/dashboard/perfil/listar', restrito: true, exclusivoTecnico: false },   // 🔒 Administrativo
   ];
 
   // 🔄 CARREGAMENTO LIMPO E PROFISSIONAL (ROTA DE PERFIL PRÓPRIO /ME)
@@ -81,9 +83,14 @@ const Layout = ({ toggleColorMode }) => {
     carregarPerfilUsuario();
   }, []);
 
-  // 🔒 REGRA OPERACIONAL DO MENU: Filtra as abas se o usuário logado for Técnico
+  // 🔒 REGRA OPERACIONAL DO MENU: Filtra as abas baseado no perfil real do banco
   const itensFiltrados = menuItems.filter(item => {
-    if (item.restrito && usuarioPerfil === 'TECNICO') {
+    // 🌟 ATUALIZADO: Bloqueia abas restritas para QUALQUER perfil que não seja o ADMIN real do banco
+    if (item.restrito && usuarioPerfil !== 'ADMIN') {
+      return false;
+    }
+    // Esconde o histórico pessoal se o usuário NÃO for um Técnico
+    if (item.exclusivoTecnico && usuarioPerfil !== 'TECNICO') {
       return false;
     }
     return true;
@@ -93,9 +100,10 @@ const Layout = ({ toggleColorMode }) => {
   const isOcorrenciasPage = location.pathname.includes('ocorrencias'); 
   const isCadastrarPerfilPage = location.pathname.includes('perfil/cadastrar');
   const isListarPerfisPage = location.pathname.includes('perfil/listar');
+  const isHistoricoPage = location.pathname.includes('historico'); // 🌟 ADICIONADO: Controle de renderização da página de histórico
   
   const isDashboardHome = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
-  const isCleanPage = isCadastrarPerfilPage || isListarPerfisPage || isOcorrenciasPage;
+  const isCleanPage = isCadastrarPerfilPage || isListarPerfisPage || isOcorrenciasPage || isHistoricoPage || location.pathname.includes('perfil/meu'); // 🌟 ADICIONADO AQUI NO FINAL
 
   const handleLogout = () => { 
     localStorage.clear(); 
@@ -117,12 +125,30 @@ const Layout = ({ toggleColorMode }) => {
             <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'Poppins' }}>LOGO TOOLHUB</Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', px: 3, py: 1, gap: 2, flexShrink: 0 }}>
+          {/* 🌟 ATUALIZADO: O container agora é um botão clicável com efeito de hover que redireciona para o Perfil próprio */}
+          <Box 
+            onClick={() => navigate('/dashboard/perfil/meu')}
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              px: 3, 
+              py: 1.5, 
+              gap: 2, 
+              flexShrink: 0,
+              cursor: 'pointer',
+              mx: 2,
+              borderRadius: '12px',
+              transition: 'background-color 0.2s ease',
+              '&:hover': {
+                bgcolor: 'action.hover'
+              }
+            }}
+          >
             <Avatar sx={{ width: 64, height: 64, bgcolor: 'primary.main', border: '2px solid', borderColor: 'divider', fontWeight: 700, fontSize: '1.4rem', fontFamily: 'Poppins' }}>
               {obtenerInicial(usuarioNome)}
             </Avatar>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.2, color: 'text.primary', fontFamily: 'Poppins', fontSize: '1rem' }}>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.2, color: 'text.primary', fontFamily: 'Poppins', fontSize: '1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {usuarioNome}
               </Typography>
               <Typography variant="body2" sx={{ fontFamily: 'JetBrains Mono', color: 'text.secondary', fontSize: '0.8rem', mt: 0.5 }}>

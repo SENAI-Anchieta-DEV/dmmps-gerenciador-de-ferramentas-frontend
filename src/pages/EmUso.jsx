@@ -21,6 +21,10 @@ const ToolCardEmUso = ({ ferramenta, onVerDetalhes, onAcionarDevolucao }) => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
 
+  // 🌟 ADICIONADO: Captura o perfil do usuário para ocultar o botão de ação indevida
+  const perfilUsuario = localStorage.getItem('perfil') || '';
+  const podeDevolver = perfilUsuario === 'TECNICO';
+
   const nome = ferramenta.ferramenta?.nome || ferramenta.nomeFerramenta || 'Ferramenta Sem Nome';
   const codigo = ferramenta.ferramenta?.codigoPatrimonio || ferramenta.codigoPatrimonio || '#ID-0000';
   const origem = ferramenta.ferramenta?.gavetaLocalizacao || ferramenta.origem || 'Almoxarifado Central';
@@ -74,20 +78,22 @@ const ToolCardEmUso = ({ ferramenta, onVerDetalhes, onAcionarDevolucao }) => {
           </Typography>
         </Box>
 
-        {/* 🌟 BOTÃO FLUTUANTE DE DEVOLUÇÃO OPERACIONAL */}
-        <Box sx={{ position: 'absolute', top: 15, right: 15 }}>
-          <Tooltip title="Devolver Ferramenta">
-            <IconButton 
-              onClick={(e) => {
-                e.stopPropagation();
-                onAcionarDevolucao(ferramenta);
-              }}
-              sx={{ color: '#FFB347', '&:hover': { transform: 'scale(1.15)', bgcolor: 'action.hover' } }}
-            >
-              <AssignmentReturnedIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
+        {/* 🌟 ATUALIZADO: O botão de devolução agora só aparece se o usuário for legitimamente um TÉCNICO */}
+        {podeDevolver && (
+          <Box sx={{ position: 'absolute', top: 15, right: 15 }}>
+            <Tooltip title="Devolver Ferramenta">
+              <IconButton 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAcionarDevolucao(ferramenta);
+                }}
+                sx={{ color: '#FFB347', '&:hover': { transform: 'scale(1.15)', bgcolor: 'action.hover' } }}
+              >
+                <AssignmentReturnedIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )}
       </Box>
 
       <Box>
@@ -171,8 +177,6 @@ const EmUso = () => {
         signal: controller.signal
       });
       
-      clearTimeout(timeoutId);
-
       if (response.ok) {
         const data = await response.json();
         const ativosAtivos = data.filter(emp => !emp.dataDevolucao);
@@ -188,6 +192,7 @@ const EmUso = () => {
       setFerramentas(DADOS_MOCK_TESTE);
       setUsandoMock(true);
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   };
@@ -289,12 +294,12 @@ const EmUso = () => {
         </Typography>
       )}
 
-      {/* 🌟 MODAL DE CONFIRMAÇÃO DE DEVOLUÇÃO ATUALIZADA COM BOTÕES PREMIUM EM VEZ DE SELECT NATIVO */}
+      {/* 🌟 MODAL DE CONFIRMAÇÃO DE DEVOLUÇÃO ATUALIZADA WITH PREMIUM BUTTONS */}
       <Dialog open={devolucaoModalOpen} onClose={() => setDevolucaoModalOpen(false)} PaperProps={{ sx: { borderRadius: '20px', p: 1, bgcolor: isLight ? '#ffffff' : '#14213D', minWidth: '380px', maxWidth: '450px' } }}>
         <DialogTitle sx={{ fontFamily: 'Poppins', fontWeight: 700 }}>Confirmar Devolução?</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ color: 'text.secondary', fontFamily: 'Poppins', mb: 2.5 }}>
-            Deseja registrar o retorno completo do ativo <strong>{emprestimoParaDevolver?.ferramenta?.nome || Math?.nomeFerramenta}</strong> para o estoque do almoxarifado?
+            Deseja registrar o retorno completo do ativo <strong>{emprestimoParaDevolver?.ferramenta?.nome || emprestimoParaDevolver?.nomeFerramenta}</strong> para o estoque do almoxarifado?
           </Typography>
 
           {/* 🌟 ADICIONADO: Painel de Botões Premium de Conservação */}
@@ -340,7 +345,7 @@ const EmUso = () => {
             </Box>
           </Box>
 
-          {/* 🌟 ADICIONADO: Formulário integrado de relato manual de Ocorrência quando o ativo está quebrado */}
+          {/* 🌟 ADICIONADO: Formulário de relato de avaria técnico manual */}
           {estadoConservacao === 'DANIFICADA' && (
             <Stack spacing={2} sx={{ mt: 2, pt: 1, borderTop: '1px dashed', borderColor: 'divider' }}>
               <Typography variant="subtitle2" sx={{ fontFamily: 'Poppins', fontWeight: 600, color: '#FF4747' }}>
@@ -421,7 +426,7 @@ const EmUso = () => {
                   <Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>Responsável Atual</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {toolDetalhada.usuario?.nome || toolDetalhada.nomeUsuario || 'Ana (Você)'}
+                      {toolDetalhada.usuario?.nome || toolDetalhada.nomeUsuario || 'Não Informado'}
                     </Typography>
                   </Box>
                 </Grid>

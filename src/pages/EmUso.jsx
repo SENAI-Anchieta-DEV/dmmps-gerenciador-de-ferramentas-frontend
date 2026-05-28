@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Button, Avatar, useTheme, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Grid, Divider, Stack, IconButton, Tooltip, TextField } from '@mui/material';
+import { Box, Typography, Paper, Button, Avatar, useTheme, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Grid, Divider, Stack, IconButton, Tooltip, TextField, InputBase, useMediaQuery } from '@mui/material';
 import { useOutletContext } from 'react-router-dom';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import PersonIcon from '@mui/icons-material/Person';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
-import AssignmentReturnedIcon from '@mui/icons-material/AssignmentReturned'; // 🌟 Ícone de devolução
+import AssignmentReturnedIcon from '@mui/icons-material/AssignmentReturned'; 
+import SearchIcon from '@mui/icons-material/Search'; // 🌟 ADICIONADO: Ícone para a barra de pesquisa mobile interna
 
 import API_BASE_URL from '../apiConfig';
 
@@ -21,7 +22,6 @@ const ToolCardEmUso = ({ ferramenta, onVerDetalhes, onAcionarDevolucao }) => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
 
-  // 🌟 ADICIONADO: Captura o perfil do usuário para ocultar o botão de ação indevida
   const perfilUsuario = localStorage.getItem('perfil') || '';
   const podeDevolver = perfilUsuario === 'TECNICO';
 
@@ -49,7 +49,7 @@ const ToolCardEmUso = ({ ferramenta, onVerDetalhes, onAcionarDevolucao }) => {
         p: 2.5, 
         borderRadius: '20px', 
         border: '1px solid',
-        borderColor: '#FFB347', // Bordinha Laranja Oficial de Em Uso
+        borderColor: '#FFB347', 
         bgcolor: 'background.paper',
         backdropFilter: 'blur(10px)',
         display: 'flex',
@@ -70,7 +70,7 @@ const ToolCardEmUso = ({ ferramenta, onVerDetalhes, onAcionarDevolucao }) => {
         </Avatar>
 
         <Box sx={{ flexGrow: 1, ml: 2, pr: 5 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: 'text.primary', fontFamily: 'Poppins' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: 'text.primary', fontFamily: 'Poppins', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {nome}
           </Typography>
           <Typography variant="body2" sx={{ fontFamily: '"JetBrains Mono", monospace', color: 'text.secondary', fontSize: '0.75rem', fontWeight: 600, mt: 0.5 }}>
@@ -78,7 +78,6 @@ const ToolCardEmUso = ({ ferramenta, onVerDetalhes, onAcionarDevolucao }) => {
           </Typography>
         </Box>
 
-        {/* 🌟 ATUALIZADO: O botão de devolução agora só aparece se o usuário for legitimamente um TÉCNICO */}
         {podeDevolver && (
           <Box sx={{ position: 'absolute', top: 15, right: 15 }}>
             <Tooltip title="Devolver Ferramenta">
@@ -125,24 +124,25 @@ const EmUso = () => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
   
+  // Captura o corte md da tela para saber se o menu lateral sumiu
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  
+  // 🌟 CONTEXTO GLOBAL + BUSCA INTERNA REATIVADA
   const { searchTerm } = useOutletContext(); 
+  const [buscaInterna, setBuscaInterna] = useState('');
 
   const [ferramentas, setFerramentas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [usandoMock, setUsandoMock] = useState(false);
   const [erro, setErro] = useState('');
 
-  // Estados dos Modais
   const [modalOpen, setModalOpen] = useState(false);
   const [toolDetalhada, setToolDetalhada] = useState(null);
   const [devolucaoModalOpen, setDevolucaoModalOpen] = useState(false);
   const [emprestimoParaDevolver, setEmprestimoParaDevolver] = useState(null);
   const [devolucaoLoading, setDevolucaoLoading] = useState(false);
   
-  // 🌟 ESTADO OPERACIONAL PARA COMPATIBILIDADE COM O POSTMAN (RF12 / RF13)
   const [estadoConservacao, setEstadoConservacao] = useState('BOM_ESTADO');
-
-  // 🌟 ADICIONADO: Estados para capturar a escrita manual da ocorrência no fluxo integrado
   const [tituloOcorrencia, setTituloOcorrencia] = useState('');
   const [descricaoOcorrencia, setDescricaoOcorrencia] = useState('');
 
@@ -157,7 +157,6 @@ const EmUso = () => {
     return '00h00';
   };
 
-  // 🔄 BUSCAR EMPRÉSTIMOS REALINHADO COM AS PERMISSÕES
   const fetchFerramentasEmUso = async () => {
     setLoading(true);
     const controller = new AbortController();
@@ -201,7 +200,6 @@ const EmUso = () => {
     fetchFerramentasEmUso();
   }, []);
 
-  // 🛠️ PROCESSAR CHECK-IN (PATCH) ATUALIZADO DINAMICAMENTE CONFORME SEU SPRINT BOOT
   const handleProcessarDevolucao = async () => {
     if (!emprestimoParaDevolver) return;
     setDevolucaoLoading(true);
@@ -215,7 +213,6 @@ const EmUso = () => {
         },
         body: JSON.stringify({
           estadoConservacao: estadoConservacao,
-          // 🌟 ADICIONADO: Enviando os textos digitados manualmente no modal para o DTO do Java
           tituloOcorrencia: estadoConservacao === 'DANIFICADA' ? tituloOcorrencia.trim() : null,
           descricaoOcorrencia: estadoConservacao === 'DANIFICADA' ? descricaoOcorrencia.trim() : null
         })
@@ -224,9 +221,9 @@ const EmUso = () => {
       if (response.ok) {
         setDevolucaoModalOpen(false);
         setEmprestimoParaDevolver(null);
-        setEstadoConservacao('BOM_ESTADO'); // Reseta para o padrão limpo pós-sucesso
-        setTituloOcorrencia(''); // 🌟 ADICIONADO: Limpa o campo de texto
-        setDescricaoOcorrencia(''); // 🌟 ADICIONADO: Limpa o campo de texto
+        setEstadoConservacao('BOM_ESTADO'); 
+        setTituloOcorrencia(''); 
+        setDescricaoOcorrencia(''); 
         fetchFerramentasEmUso(); 
       } else {
         const errData = await response.json().catch(() => ({}));
@@ -239,8 +236,9 @@ const EmUso = () => {
     }
   };
 
+  // 🌟 CHAVEAMENTO DE FILTRO INTELIGENTE: Consome o termo global no desktop e o termo local no mobile
   const ferramentasFiltradas = ferramentas.filter((f) => {
-    const termo = searchTerm?.toLowerCase() || '';
+    const termo = (isMobile ? buscaInterna : searchTerm)?.toLowerCase() || '';
     const nome = (f.ferramenta?.nome || f.nomeFerramenta || '').toLowerCase();
     const codigo = (f.ferramenta?.codigoPatrimonio || f.codigoPatrimonio || '').toString().toLowerCase();
     return nome.includes(termo) || codigo.includes(termo);
@@ -251,12 +249,11 @@ const EmUso = () => {
     setModalOpen(true);
   };
 
-  // 🌟 ATUALIZADO: Garante o reset do estado de conservação e campos preventivos ao abrir o modal
   const acionarDevolucao = (emprestimo) => {
     setEmprestimoParaDevolver(emprestimo);
     setEstadoConservacao('BOM_ESTADO'); 
-    setTituloOcorrencia(''); // 🌟 ADICIONADO
-    setDescricaoOcorrencia(''); // 🌟 ADICIONADO
+    setTituloOcorrencia(''); 
+    setDescricaoOcorrencia(''); 
     setDevolucaoModalOpen(true);
   };
 
@@ -269,10 +266,35 @@ const EmUso = () => {
   }
 
   return (
-    <Box sx={{ width: '100%', pb: 5 }}>
-      <Typography variant="h4" sx={{ mb: 4, fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5', letterSpacing: '-0.5px' }}>
+    <Box sx={{ width: '100%', pb: 5, px: { xs: 2, sm: 3, md: 0 } }}>
+      <Typography variant="h4" sx={{ mb: isMobile ? 2 : 4, fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5', letterSpacing: '-0.5px' }}>
         Em Uso
       </Typography>
+
+      {/* 🌟 BARRA DE BUSCA NATIVA MOBILE: Surge dinamicamente apenas em telas de celular/tablet */}
+      {isMobile && (
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            border: '1px solid', 
+            borderColor: 'divider', 
+            borderRadius: '24px', 
+            px: 2, 
+            mb: 3,
+            bgcolor: 'background.paper', 
+            width: '100%' 
+          }}
+        >
+          <InputBase 
+            placeholder="Buscar ferramenta em uso..." 
+            value={buscaInterna}
+            onChange={(e) => setBuscaInterna(e.target.value)}
+            sx={{ ml: 1, flex: 1, p: '10px 0', fontSize: '0.85rem', fontFamily: 'Poppins' }} 
+          />
+          <IconButton size="small"><SearchIcon sx={{ fontSize: '1.2rem' }} /></IconButton>
+        </Box>
+      )}
 
       {usandoMock && (
         <Alert severity="info" sx={{ mb: 3, borderRadius: '12px', fontFamily: 'Poppins', fontWeight: 500 }}>
@@ -294,15 +316,14 @@ const EmUso = () => {
         </Typography>
       )}
 
-      {/* 🌟 MODAL DE CONFIRMAÇÃO DE DEVOLUÇÃO ATUALIZADA WITH PREMIUM BUTTONS */}
-      <Dialog open={devolucaoModalOpen} onClose={() => setDevolucaoModalOpen(false)} PaperProps={{ sx: { borderRadius: '20px', p: 1, bgcolor: isLight ? '#ffffff' : '#14213D', minWidth: '380px', maxWidth: '450px' } }}>
+      {/* --- MODAL DE CONFIRMAÇÃO DE DEVOLUÇÃO --- */}
+      <Dialog open={devolucaoModalOpen} onClose={() => setDevolucaoModalOpen(false)} PaperProps={{ sx: { borderRadius: '20px', p: 1, bgcolor: isLight ? '#ffffff' : '#14213D', minWidth: { xs: '90%', sm: '380px' }, maxWidth: '450px' } }}>
         <DialogTitle sx={{ fontFamily: 'Poppins', fontWeight: 700 }}>Confirmar Devolução?</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ color: 'text.secondary', fontFamily: 'Poppins', mb: 2.5 }}>
             Deseja registrar o retorno completo do ativo <strong>{emprestimoParaDevolver?.ferramenta?.nome || emprestimoParaDevolver?.nomeFerramenta}</strong> para o estoque do almoxarifado?
           </Typography>
 
-          {/* 🌟 ADICIONADO: Painel de Botões Premium de Conservação */}
           <Box sx={{ p: 2, borderRadius: '12px', bgcolor: isLight ? 'rgba(20,33,61,0.02)' : 'rgba(255,255,255,0.02)', border: '1px solid', borderColor: 'divider', mb: 2 }}>
             <Typography variant="subtitle2" sx={{ fontFamily: 'Poppins', fontWeight: 600, mb: 1.5, color: 'text.primary' }}>
               Condições de Conservação do Ativo:
@@ -312,12 +333,7 @@ const EmUso = () => {
                 variant={estadoConservacao === 'BOM_ESTADO' ? 'contained' : 'outlined'}
                 onClick={() => setEstadoConservacao('BOM_ESTADO')}
                 sx={{
-                  flex: 1,
-                  textTransform: 'none',
-                  fontFamily: 'Poppins',
-                  borderRadius: '10px',
-                  fontWeight: 600,
-                  borderColor: 'divider',
+                  flex: 1, textTransform: 'none', fontFamily: 'Poppins', borderRadius: '10px', fontWeight: 600, borderColor: 'divider',
                   bgcolor: estadoConservacao === 'BOM_ESTADO' ? '#85FF80' : 'transparent',
                   color: estadoConservacao === 'BOM_ESTADO' ? '#14213D' : 'text.primary',
                   '&:hover': { bgcolor: estadoConservacao === 'BOM_ESTADO' ? '#72eb6d' : 'action.hover' }
@@ -329,12 +345,7 @@ const EmUso = () => {
                 variant={estadoConservacao === 'DANIFICADA' ? 'contained' : 'outlined'}
                 onClick={() => setEstadoConservacao('DANIFICADA')}
                 sx={{
-                  flex: 1,
-                  textTransform: 'none',
-                  fontFamily: 'Poppins',
-                  borderRadius: '10px',
-                  fontWeight: 600,
-                  borderColor: 'divider',
+                  flex: 1, textTransform: 'none', fontFamily: 'Poppins', borderRadius: '10px', fontWeight: 600, borderColor: 'divider',
                   bgcolor: estadoConservacao === 'DANIFICADA' ? '#FF4747' : 'transparent',
                   color: estadoConservacao === 'DANIFICADA' ? '#ffffff' : 'text.primary',
                   '&:hover': { bgcolor: estadoConservacao === 'DANIFICADA' ? '#e03b3b' : 'action.hover' }
@@ -345,37 +356,20 @@ const EmUso = () => {
             </Box>
           </Box>
 
-          {/* 🌟 ADICIONADO: Formulário de relato de avaria técnico manual */}
           {estadoConservacao === 'DANIFICADA' && (
             <Stack spacing={2} sx={{ mt: 2, pt: 1, borderTop: '1px dashed', borderColor: 'divider' }}>
               <Typography variant="subtitle2" sx={{ fontFamily: 'Poppins', fontWeight: 600, color: '#FF4747' }}>
                 Relatório de Avaria Técnico (Manual):
               </Typography>
               <TextField
-                required
-                fullWidth
-                label="Título da Ocorrência"
-                placeholder="Ex: Cabo de força quebrado"
-                value={tituloOcorrencia}
-                onChange={(e) => setTituloOcorrencia(e.target.value)}
-                sx={{
-                  '& .MuiOutlinedInput-root': { borderRadius: '12px', fontFamily: 'Poppins' },
-                  '& .MuiInputLabel-root': { fontFamily: 'Poppins' }
-                }}
+                required fullWidth label="Título da Ocorrência" placeholder="Ex: Cabo de força quebrado"
+                value={tituloOcorrencia} onChange={(e) => setTituloOcorrencia(e.target.value)}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', fontFamily: 'Poppins' }, '& .MuiInputLabel-root': { fontFamily: 'Poppins' } }}
               />
               <TextField
-                required
-                fullWidth
-                multiline
-                rows={3}
-                label="Descrição Detalhada do Defeito"
-                placeholder="Descreva o problema observado no ativo..."
-                value={descricaoOcorrencia}
-                onChange={(e) => setDescricaoOcorrencia(e.target.value)}
-                sx={{
-                  '& .MuiOutlinedInput-root': { borderRadius: '12px', fontFamily: 'Poppins' },
-                  '& .MuiInputLabel-root': { fontFamily: 'Poppins' }
-                }}
+                required fullWidth multiline rows={3} label="Descrição Detalhada do Defeito" placeholder="Descreva o problema observado no ativo..."
+                value={descricaoOcorrencia} onChange={(e) => setDescricaoOcorrencia(e.target.value)}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', fontFamily: 'Poppins' }, '& .MuiInputLabel-root': { fontFamily: 'Poppins' } }}
               />
             </Stack>
           )}
@@ -387,12 +381,8 @@ const EmUso = () => {
             variant="contained" 
             disabled={devolucaoLoading || (estadoConservacao === 'DANIFICADA' && (!tituloOcorrencia.trim() || !descricaoOcorrencia.trim()))} 
             sx={{ 
-              textTransform: 'none', 
-              fontFamily: 'Poppins', 
-              fontWeight: 700, 
-              bgcolor: estadoConservacao === 'DANIFICADA' ? '#FF4747' : '#FFB347', 
-              color: 'white', 
-              borderRadius: '10px', 
+              textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, 
+              bgcolor: estadoConservacao === 'DANIFICADA' ? '#FF4747' : '#FFB347', color: 'white', borderRadius: '10px', 
               '&:hover': { bgcolor: estadoConservacao === 'DANIFICADA' ? '#e03b3b' : '#e09a36' },
               '&.Mui-disabled': { bgcolor: 'action.disabledBackground', color: 'action.disabled' }
             }}

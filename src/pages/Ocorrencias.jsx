@@ -3,18 +3,18 @@ import { useOutletContext } from 'react-router-dom';
 import { 
   Box, Typography, Paper, Button, TextField, InputAdornment, 
   IconButton, Chip, Avatar, useTheme, CircularProgress, Stack, Grid, Badge, Alert,
-  Dialog, DialogTitle, DialogContent, DialogActions, Tooltip
+  Dialog, DialogTitle, DialogContent, DialogActions, Tooltip, useMediaQuery
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import AddIcon from '@mui/icons-material/Add';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'; 
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'; 
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'; // 🌟 ADICIONADO
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'; // 🌟 ADICIONADO
 import API_BASE_URL from '../apiConfig';
 
 const mockOcorrencias = [
@@ -23,12 +23,11 @@ const mockOcorrencias = [
   { id: 'mock-3', dataAbertura: '2026-04-18T11:00:00', titulo: 'Falha Elétrica', nomeFerramenta: 'Serra Tico-Tico Dewalt', nomeUsuario: 'Carlos Lima', descricao: 'Motor apresentando superaquecimento após 10 min.', statusOcorrencia: 'DESCARTADA' },
 ];
 
-// --- COMPONENTE DO CARD ATUALIZADO COM AÇÕES DO ALMOXARIFE ---
+// --- COMPONENTE DO CARD ATUALIZADO ---
 const OcorrenciaCard = ({ item, onAcaoStatus }) => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
 
-  // 🔐 Identifica se quem está olhando a tela é Admin ou Almoxarife para liberar os botões
   const perfilUsuario = localStorage.getItem('perfil') || '';
   const ehAlmoxarifeOuAdmin = perfilUsuario === 'ADMIN' || perfilUsuario === 'ALMOXARIFE';
 
@@ -58,23 +57,28 @@ const OcorrenciaCard = ({ item, onAcaoStatus }) => {
       sx={{ 
         p: 2.5, borderRadius: '20px', border: '1px solid', 
         borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)',
-        bgcolor: 'background.paper', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'center' }, gap: { xs: 2, md: 4 },
-        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        bgcolor: 'background.paper', 
+        display: 'flex', 
+        flexDirection: { xs: 'column', md: 'row' }, 
+        alignItems: { xs: 'flex-start', md: 'center' }, 
+        gap: 2.5,
+        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease',
         '&:hover': { 
-          borderColor: isLight ? 'primary.main' : '#00f2ff', transform: 'translateX(8px)',
+          borderColor: isLight ? 'primary.main' : '#00f2ff', 
+          transform: 'translateX(6px)',
           boxShadow: isLight ? '0 8px 25px rgba(0, 0, 0, 0.04)' : '0 0 20px rgba(0, 242, 255, 0.15)'
         }
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1.5, minWidth: 0, width: '100%' }}>
-        <Avatar sx={{ bgcolor: `${status.color}15`, color: status.color, width: 52, height: 52, flexShrink: 0 }}>
-          <WarningAmberIcon sx={{ fontSize: '1.8rem' }} />
+        <Avatar sx={{ bgcolor: `${status.color}15`, color: status.color, width: 48, height: 48, flexShrink: 0 }}>
+          <WarningAmberIcon sx={{ fontSize: '1.6rem' }} />
         </Avatar>
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, fontFamily: 'Poppins', lineHeight: 1.3, color: 'text.primary' }}>
+          <Typography variant="subtitle1" sx={{ fontFamily: 'Poppins', fontWeight: 700, lineHeight: 1.3, color: 'text.primary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {tituloExibicao}
           </Typography>
-          <Typography variant="body2" sx={{ fontFamily: 'Poppins', color: 'text.secondary', fontSize: '0.85rem', mt: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <Typography variant="body2" sx={{ fontFamily: 'Poppins', color: 'text.secondary', fontSize: '0.82rem', mt: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {descricaoExibicao}
           </Typography>
           <Typography variant="body2" sx={{ fontFamily: '"JetBrains Mono", monospace', color: 'text.secondary', fontSize: '0.75rem', mt: 0.5, fontWeight: 600 }}>
@@ -83,26 +87,25 @@ const OcorrenciaCard = ({ item, onAcaoStatus }) => {
         </Box>
       </Box>
 
-      <Box sx={{ flex: 1, display: { xs: 'block', sm: 'block' }, minWidth: 0, pl: { xs: 7, sm: 0 } }}>
-        <Typography variant="body2" sx={{ fontWeight: 700, fontFamily: 'Poppins', color: 'text.primary' }}>
+      <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
+        <Typography variant="body2" sx={{ fontWeight: 700, fontFamily: 'Poppins', color: 'text.primary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {ferramentaExibicao}
         </Typography>
-        <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'Poppins', display: 'block', mt: 0.3 }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'Poppins', display: 'block', mt: 0.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           Responsável: {usuarioExibicao}
         </Typography>
       </Box>
 
-      {/* 🌟 ADICIONADO: Painel de Ações Dinâmicas para o Almoxarife fechar o ciclo do Java */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: { xs: '100%', sm: 'auto' }, gap: 3, pl: { xs: 7, sm: 0 }, ml: 'auto' }}>
-        <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
-          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', fontFamily: 'Poppins', display: 'block', mb: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: { xs: '100%', md: 'auto' }, gap: 3, ml: 'auto', pt: { xs: 1, md: 0 }, borderTop: { xs: '1px dashed', md: 'none' }, borderColor: 'divider' }}>
+        <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', fontFamily: 'Poppins', display: 'block', mb: 0.8 }}>
             Abertura: {dataExibicao}
           </Typography>
           <Chip label={status.label} size="small" sx={{ fontWeight: 800, fontFamily: 'Poppins', fontSize: '0.65rem', color: status.color, border: `1.5px solid ${status.color}`, bgcolor: 'transparent' }} />
         </Box>
 
         {ehAlmoxarifeOuAdmin && item.statusOcorrencia === 'EM_MANUTENCAO' && (
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
             <Tooltip title="Resolver Ocorrência (Disponibilizar Ativo)">
               <IconButton 
                 size="small" 
@@ -132,6 +135,7 @@ const OcorrenciaCard = ({ item, onAcaoStatus }) => {
 const Ocorrencias = () => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { toggleColorMode } = useOutletContext();
 
   const [loading, setLoading] = useState(true);
@@ -145,7 +149,6 @@ const Ocorrencias = () => {
   const [titulo, setTitulo] = useState(''); 
   const [descricao, setDescricao] = useState('');
 
-  // 🌟 ESTADOS PARA MODAL DE ATUALIZAÇÃO DO ALMOXARIFE
   const [dialogAcaoOpen, setDialogAcaoOpen] = useState(false);
   const [ocorrenciaSelecionada, setOcorrenciaSelecionada] = useState(null);
   const [proximoStatus, setProximoStatus] = useState('');
@@ -198,11 +201,9 @@ const Ocorrencias = () => {
 
   useEffect(() => { carregarOcorrencias(); }, []);
 
-  // 🌟 FUNÇÃO PARA DISPARAR O PATCH CONFORME SEU OCORRENCIACONTROLLER.JAVA
   const handleAtualizarStatusOcorrencia = async () => {
     if (!ocorrenciaSelecionada) return;
     
-    // Validação da regra de negócio (RN06): Descarte exige justificativa
     if (proximoStatus === 'DESCARTADA' && !justificativaDescarte.trim()) {
       alert('A justificativa é obrigatória para descartar uma ferramenta.');
       return;
@@ -226,7 +227,7 @@ const Ocorrencias = () => {
         setDialogAcaoOpen(false);
         setOcorrenciaSelecionada(null);
         setJustificativaDescarte('');
-        carregarOcorrencias(); // Recarrega os dados reais
+        carregarOcorrencias(); 
       } else {
         const errData = await response.json().catch(() => ({}));
         alert(`Erro ${response.status}: ${errData.detail || 'Não foi possível atualizar o status.'}`);
@@ -280,7 +281,6 @@ const Ocorrencias = () => {
 
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}><CircularProgress sx={{ color: isLight ? 'primary.main' : '#00f2ff' }} /></Box>;
 
-  // 1. Primeiro filtramos por texto (busca por ferramenta, título ou descrição)
   const ocorrenciasFiltradasPorTexto = ocorrenciasList.filter(o => {
     const desc = (o.descricao || '').toLowerCase();
     const tit = (o.titulo || '').toLowerCase();
@@ -289,100 +289,130 @@ const Ocorrencias = () => {
     return desc.includes(term) || tit.includes(term) || fer.includes(term);
   });
 
-  // 🌟 REGRA DE NEGÓCIO: Filtro de Visibilidade por Perfil
-  const perfilUsuario = localStorage.getItem('perfil') || '';
-  const ehAlmoxarifeOuAdmin = perfilUsuario === 'ADMIN' || perfilUsuario === 'ALMOXARIFE';
+  const perfilUsuarioGlobal = localStorage.getItem('perfil') || '';
+  const ehAlmoxarifeOuAdmin = perfilUsuarioGlobal === 'ADMIN' || perfilUsuarioGlobal === 'ALMOXARIFE';
 
-  // 🔒 Se for Técnico, exibe APENAS o que estiver em aberto ('EM_MANUTENCAO'). Se for Almoxarife/Admin, vê tudo!
   const ocorrenciasFiltradas = ehAlmoxarifeOuAdmin 
     ? ocorrenciasFiltradasPorTexto 
     : ocorrenciasFiltradasPorTexto.filter(o => o.statusOcorrencia === 'EM_MANUTENCAO');
 
-  return (
-    <Box sx={{ width: '100%', maxWidth: '1200px', mx: 'auto', position: 'relative', pt: 8, pb: 5 }}>
-      <Box sx={{ position: 'absolute', top: 20, right: 0, display: 'flex', gap: 1 }}>
-        <Badge badgeContent={3} color="error"><IconButton><NotificationsIcon sx={{ color: 'text.primary' }} /></IconButton></Badge>
-        <IconButton onClick={toggleColorMode} sx={{ color: 'text.primary' }}>{theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}</IconButton>
-      </Box>
-
-      {exibirCadastro ? (
-        <Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 4 }}>
-            <IconButton onClick={() => setExibirCadastro(false)} sx={{ color: 'text.primary' }}><ArrowBackIcon /></IconButton>
-            <Typography variant="h4" sx={{ fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5' }}>
-              Registrar Nova Ocorrência
-            </Typography>
-          </Box>
-
-          <Paper elevation={0} component="form" onSubmit={handleSalvar} sx={{ p: 5, borderRadius: '24px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <TextField required fullWidth label="UUID da Ferramenta *" placeholder="Ex: 123e4567-e89b..." value={ferramentaId} onChange={(e) => setFerramentaId(e.target.value)} sx={inputStyles} />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField required fullWidth label="Título da Ocorrência *" placeholder="Ex: Defeito no motor" value={titulo} onChange={(e) => setTitulo(e.target.value)} sx={inputStyles} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField required fullWidth label="Descrição Detalhada *" placeholder="Descreva com detalhes o defeito observado..." value={descricao} onChange={(e) => setDescricao(e.target.value)} sx={inputStyles} />
-              </Grid>
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
-                  <Button variant="text" onClick={() => setExibirCadastro(false)} sx={{ textTransform: 'none', fontFamily: 'Poppins', color: 'text.secondary', fontWeight: 600 }}>Cancelar</Button>
-                  <Button type="submit" variant="contained" disabled={submitting} sx={{ borderRadius: '14px', px: 6, py: 1.5, fontFamily: 'Poppins', fontWeight: 800, textTransform: 'none', bgcolor: isLight ? '#14213D' : '#00f2ff', color: isLight ? '#fff' : '#14213D' }}>
-                    {submitting ? <CircularProgress size={24} color="inherit" /> : 'Salvar Relato'}
-                  </Button>
-                </Box>
-              </Grid>
-            </Grid>
-          </Paper>
+  if (exibirCadastro) {
+    return (
+      <Box sx={{ width: '100%', pb: 5, p: { xs: 2, sm: 3, md: 4 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 4 }}>
+          <IconButton onClick={() => setExibirCadastro(false)} sx={{ color: 'text.primary' }}><ArrowBackIcon /></IconButton>
+          <Typography variant="h4" sx={{ fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5', fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
+            Registrar Nova Ocorrência
+          </Typography>
         </Box>
-      ) : (
-        <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-            <Typography variant="h4" sx={{ fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5' }}>Ocorrências</Typography>
-            {/* O botão de registro manual no topo só faz sentido para o Técnico registrar defeito sem empréstimo associado */}
-            {!ehAlmoxarifeOuAdmin && (
-              <Button variant="contained" startIcon={<AddIcon />} onClick={() => setExibirCadastro(true)} sx={{ borderRadius: '16px', fontFamily: 'Poppins', fontWeight: 700, textTransform: 'none', bgcolor: isLight ? '#14213D' : '#00f2ff', color: isLight ? '#fff' : '#14213D', px: 3, py: 1 }}>Registrar Ocorrência</Button>
-            )}
-          </Box>
 
-          <Box sx={{ mb: 4, display: 'flex', gap: 2 }}>
-            <TextField 
-              fullWidth 
-              placeholder="Buscar por ferramenta, título ou descrição..." 
-              size="small" 
-              value={buscaInterna} 
-              onChange={(e) => setBuscaInterna(e.target.value)} 
-              InputProps={{ 
-                startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: isLight ? 'primary.main' : '#00f2ff', fontSize: '1.2rem' }} /></InputAdornment>, 
-                sx: { borderRadius: '14px', bgcolor: 'background.paper', fontFamily: 'Poppins', fontSize: '0.88rem', '& fieldset': { borderColor: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.05)' } } 
-              }} 
-            />
-            <IconButton sx={{ border: '1px solid', borderColor: isLight ? 'primary.main' : '#00f2ff', borderRadius: '14px', p: 1.2, bgcolor: 'background.paper', color: isLight ? 'primary.main' : '#00f2ff' }}><FilterListIcon fontSize="small" /></IconButton>
-          </Box>
-
-          {isSandbox && (
-            <Alert severity="info" sx={{ mb: 4, borderRadius: '14px', fontFamily: 'Poppins', fontWeight: 600 }}>
-              <strong>Modo Sandbox Ativo:</strong> Exibindo dados locais de testes. Aguardando conexão com a API do backend.
-            </Alert>
-          )}
-
-          {ocorrenciasFiltradas.length === 0 ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px', width: '100%' }}>
-              <Typography variant="body1" sx={{ fontFamily: 'Poppins', color: 'text.secondary', fontWeight: 500 }}>Nenhuma ocorrência correspondente encontrada.</Typography>
+        <Box 
+          component="form" 
+          onSubmit={handleSalvar} 
+          sx={{ 
+            p: { xs: 0, sm: 5 }, 
+            bgcolor: { xs: 'transparent', sm: 'background.paper' }, 
+            border: { xs: 'none', sm: '1px solid' }, 
+            borderColor: 'divider', 
+            borderRadius: '24px',
+            width: '100%',
+            boxSizing: 'border-box'
+          }}
+        >
+          <Stack spacing={3} sx={{ width: '100%' }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, width: '100%' }}>
+              <TextField required fullWidth label="UUID da Ferramenta *" placeholder="Ex: 123e4567-e89b..." value={ferramentaId} onChange={(e) => setFerramentaId(e.target.value)} sx={inputStyles} />
+              <TextField required fullWidth label="Título da Ocorrência *" placeholder="Ex: Defeito no motor" value={titulo} onChange={(e) => setTitulo(e.target.value)} sx={inputStyles} />
             </Box>
-          ) : (
-            <Stack spacing={2}>
-              {ocorrenciasFiltradas.map((item, index) => (
-                <OcorrenciaCard key={item.id || index} item={item} onAcaoStatus={handleAbrirDialogAcao} />
-              ))}
-            </Stack>
-          )}
+            
+            <TextField required fullWidth multiline rows={4} label="Descrição Detalhada *" placeholder="Descreva com detalhes o defeito observado..." value={descricao} onChange={(e) => setDescricao(e.target.value)} sx={inputStyles} />
+            
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column-reverse', sm: 'row' }, justifyContent: 'flex-end', gap: 2, mt: 1, width: '100%' }}>
+              <Button variant="text" onClick={() => setExibirCadastro(false)} sx={{ textTransform: 'none', fontFamily: 'Poppins', color: 'text.secondary', fontWeight: 600, py: { xs: 1.5, sm: 0 } }}>Cancelar</Button>
+              <Button type="submit" variant="contained" disabled={submitting} sx={{ borderRadius: '14px', px: 6, py: 1.5, fontFamily: 'Poppins', fontWeight: 800, textTransform: 'none', bgcolor: isLight ? '#14213D' : '#00f2ff', color: isLight ? '#fff' : '#14213D', width: { xs: '100%', sm: 'auto' } }}>
+                {submitting ? <CircularProgress size={24} color="inherit" /> : 'Salvar Relato'}
+              </Button>
+            </Box>
+          </Stack>
+        </Box>
+      </Box>
+    );
+  }
+
+  return (
+    /* 🌟 FIX COMPLETO: Força o respiro lateral reativo e confortável em ambas as configurações (Desktop e Mobile) */
+    <Box sx={{ width: '100%', pb: 5, p: { xs: 2.5, sm: 3, md: 4 }, boxSizing: 'border-box' }}>
+      
+      {/* Barra de ferramentas Desktop alinhada */}
+      {!isMobile && (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mb: 3, width: '100%' }}>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Badge badgeContent={3} color="error" overlap="circular">
+              <IconButton color="inherit" sx={{ p: 1 }}>
+                <NotificationsIcon sx={{ fontSize: '1.5rem', color: 'text.primary' }} />
+              </IconButton>
+            </Badge>
+            <IconButton 
+              onClick={toggleColorMode} 
+              sx={{ 
+                color: 'text.primary', 
+                bgcolor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.05)', 
+                p: 1,
+                '&:hover': { bgcolor: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)' } 
+              }}
+            >
+              {theme.palette.mode === 'dark' ? <Brightness7Icon sx={{ fontSize: '1.4rem' }} /> : <Brightness4Icon sx={{ fontSize: '1.4rem' }} />}
+            </IconButton>
+          </Stack>
         </Box>
       )}
 
-      {/* 🌟 MODAL CONFIRMAÇÃO DE STATUS (RESOLVER OU DESCARTAR) */}
-      <Dialog open={dialogAcaoOpen} onClose={() => setDialogAcaoOpen(false)} PaperProps={{ sx: { borderRadius: '20px', p: 1, bgcolor: isLight ? '#ffffff' : '#14213D', minWidth: '350px' } }}>
+      {/* Título da Página */}
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 4, gap: 2 }}>
+        <Typography variant="h4" sx={{ fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5', fontSize: { xs: '1.8rem', sm: '2.125rem' } }}>
+          Ocorrências
+        </Typography>
+        {!ehAlmoxarifeOuAdmin && (
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setExibirCadastro(true)} sx={{ borderRadius: '16px', fontFamily: 'Poppins', fontWeight: 700, textTransform: 'none', bgcolor: isLight ? '#14213D' : '#00f2ff', color: isLight ? '#fff' : '#14213D', px: 3, py: 1, width: { xs: '100%', sm: 'auto' } }}>Registrar Ocorrência</Button>
+        )}
+      </Box>
+
+      {/* Barra de Pesquisa */}
+      <Box sx={{ mb: 4, display: 'flex', gap: 2, width: '100%' }}>
+        <TextField 
+          fullWidth 
+          placeholder="Buscar por ferramenta, título ou descrição..." 
+          size="small" 
+          value={buscaInterna} 
+          onChange={(e) => setBuscaInterna(e.target.value)} 
+          InputProps={{ 
+            startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: isLight ? 'primary.main' : '#00f2ff', fontSize: '1.2rem' }} /></InputAdornment>, 
+            sx: { borderRadius: '14px', bgcolor: 'background.paper', fontFamily: 'Poppins', fontSize: '0.88rem', '& fieldset': { borderColor: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.05)' } } 
+          }} 
+        />
+        <IconButton sx={{ border: '1px solid', borderColor: isLight ? 'primary.main' : '#00f2ff', borderRadius: '14px', p: 1.2, bgcolor: 'background.paper', color: isLight ? 'primary.main' : '#00f2ff', flexShrink: 0 }}><FilterListIcon fontSize="small" /></IconButton>
+      </Box>
+
+      {isSandbox && (
+        <Alert severity="info" sx={{ mb: 4, borderRadius: '14px', fontFamily: 'Poppins', fontWeight: 600 }}>
+          <strong>Modo Sandbox Ativo:</strong> Exibindo dados locais de testes. Aguardando conexão com a API do backend.
+        </Alert>
+      )}
+
+      {ocorrenciasFiltradas.length === 0 ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px', width: '100%' }}>
+          <Typography variant="body1" sx={{ fontFamily: 'Poppins', color: 'text.secondary', fontWeight: 500 }}>Nenhuma ocorrência correspondente encontrada.</Typography>
+        </Box>
+      ) : (
+        <Stack spacing={2} sx={{ width: '100%' }}>
+          {ocorrenciasFiltradas.map((item, index) => (
+            <OcorrenciaCard key={item.id || index} item={item} onAcaoStatus={handleAbrirDialogAcao} />
+          ))}
+        </Stack>
+      )}
+
+      {/* MODAL CONFIRMAÇÃO DE STATUS */}
+      <Dialog open={dialogAcaoOpen} onClose={() => setDialogAcaoOpen(false)} PaperProps={{ sx: { borderRadius: '20px', p: 1, bgcolor: isLight ? '#ffffff' : '#14213D', minWidth: { xs: '90%', sm: '350px' } } }}>
         <DialogTitle sx={{ fontFamily: 'Poppins', fontWeight: 700 }}>
           {proximoStatus === 'RESOLVIDA' ? 'Resolver Ocorrência?' : 'Descartar Ferramenta?'}
         </DialogTitle>
@@ -416,7 +446,7 @@ const Ocorrencias = () => {
             sx={{ 
               textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, 
               bgcolor: proximoStatus === 'RESOLVIDA' ? '#85FF80' : '#FF4747', 
-              color: proximoStatus === 'RESOLVIDA' ? '#14213D' : '#white', 
+              color: proximoStatus === 'RESOLVIDA' ? '#14213D' : 'white', 
               borderRadius: '10px', '&:hover': { bgcolor: proximoStatus === 'RESOLVIDA' ? '#72eb6d' : '#e03b3b' } 
             }}
           >

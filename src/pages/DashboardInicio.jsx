@@ -17,7 +17,7 @@ const CardMetrica = ({ titulo, valor, icone, corStatus, progressoSimulado }) => 
     <Paper
       elevation={0}
       sx={{
-        p: 3,
+        p: { xs: 2.5, sm: 3 }, 
         borderRadius: '20px',
         border: '1px solid',
         borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)',
@@ -31,7 +31,6 @@ const CardMetrica = ({ titulo, valor, icone, corStatus, progressoSimulado }) => 
         transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease',
         '&:hover': {
           transform: 'translateY(-5px)',
-          // 🌟 RESTAURADO: Efeito Glow/Neon comercial baseado no status e tema
           boxShadow: isLight 
             ? '0 10px 25px rgba(20, 33, 61, 0.06)' 
             : `0 0 25px ${corStatus === '#14213D' ? 'rgba(0, 242, 255, 0.25)' : corStatus + '40'}`,
@@ -40,12 +39,12 @@ const CardMetrica = ({ titulo, valor, icone, corStatus, progressoSimulado }) => 
         }
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        <Stack spacing={0.5}>
-          <Typography variant="caption" sx={{ fontFamily: 'Poppins', fontWeight: 600, color: isLight ? 'rgba(20, 33, 61, 0.6)' : 'rgba(245, 245, 245, 0.5)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 1 }}>
+        <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+          <Typography variant="caption" sx={{ fontFamily: 'Poppins', fontWeight: 600, color: isLight ? 'rgba(20, 33, 61, 0.6)' : 'rgba(245, 245, 245, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {titulo}
           </Typography>
-          <Typography variant="h4" sx={{ fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5', letterSpacing: '-0.5px' }}>
+          <Typography variant="h4" sx={{ fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5', letterSpacing: '-0.5px', fontSize: { xs: '1.8rem', sm: '2.125rem' } }}>
             {valor}
           </Typography>
         </Stack>
@@ -54,10 +53,11 @@ const CardMetrica = ({ titulo, valor, icone, corStatus, progressoSimulado }) => 
           sx={{ 
             bgcolor: `${corStatus}15`, 
             color: corStatus, 
-            width: 52,
-            height: 52,
+            width: { xs: 46, sm: 52 }, 
+            height: { xs: 46, sm: 52 },
             border: `1px solid ${corStatus}30`,
-            boxShadow: isLight ? 'none' : `0 0 10px ${corStatus}20` // 🌟 RESTAURADO: Glow interno no Avatar
+            boxShadow: isLight ? 'none' : `0 0 10px ${corStatus}20`,
+            flexShrink: 0
           }}
         >
           {icone}
@@ -73,7 +73,7 @@ const CardMetrica = ({ titulo, valor, icone, corStatus, progressoSimulado }) => 
             borderRadius: 2,
             bgcolor: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)',
             '& .MuiLinearProgress-bar': {
-              bgcolor: corStatus === '#14213D' && !isLight ? '#00f2ff' : corStatus, // 🌟 RESTAURADO: Destaque Ciano na barra escura
+              bgcolor: corStatus === '#14213D' && !isLight ? '#00f2ff' : corStatus,
               borderRadius: 2
             }
           }}
@@ -97,27 +97,48 @@ const ItemAtividade = ({ id, ferramenta, info, statusCor, statusTexto }) => {
         py: 1.8,
         px: 1,
         borderRadius: '10px',
+        gap: 2, 
         transition: 'background-color 0.2s ease',
         '&:hover': { bgcolor: isLight ? 'rgba(20, 33, 61, 0.02)' : 'rgba(255, 255, 255, 0.02)' }
       }}
     >
-      <Stack spacing={0.5}>
-        <Typography variant="subtitle2" sx={{ fontWeight: 700, fontFamily: 'Poppins', color: isLight ? '#14213D' : '#f5f5f5' }}>
+      <Stack spacing={0.5} sx={{ minWidth: 0, flexGrow: 1 }}>
+        <Typography 
+          variant="subtitle2" 
+          sx={{ 
+            fontWeight: 700, 
+            fontFamily: 'Poppins', 
+            color: isLight ? '#14213D' : '#f5f5f5',
+            whiteSpace: 'nowrap', 
+            overflow: 'hidden', 
+            textOverflow: 'ellipsis' 
+          }}
+        >
           {ferramenta}
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="caption" sx={{ fontFamily: 'JetBrains Mono', color: isLight ? 'rgba(20,33,61,0.5)' : 'rgba(245,245,245,0.4)', fontWeight: 500 }}>
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+          <Typography variant="caption" sx={{ fontFamily: 'JetBrains Mono', color: isLight ? 'rgba(20,33,61,0.5)' : 'rgba(245,245,245,0.4)', fontWeight: 500, flexShrink: 0 }}>
             {id}
           </Typography>
-          <Box component="span" sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: 'divider' }} />
-          <Typography variant="caption" sx={{ fontFamily: 'Poppins', color: 'text.secondary', fontWeight: 500 }}>
+          <Box component="span" sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: 'divider', flexShrink: 0 }} />
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              fontFamily: 'Poppins', 
+              color: 'text.secondary', 
+              fontWeight: 500,
+              whiteSpace: 'nowrap', 
+              overflow: 'hidden', 
+              textOverflow: 'ellipsis' 
+            }}
+          >
             {info}
           </Typography>
         </Box>
       </Stack>
       
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        {/* 🌟 RESTAURADO: Glow e pulso visual nos pequenos leds de status dos itens */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
         <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: statusCor, boxShadow: `0 0 10px ${statusCor}, 0 0 4px ${statusCor}` }} />
         <Typography variant="caption" sx={{ fontFamily: 'Poppins', fontWeight: 600, color: statusCor, letterSpacing: '0.3px' }}>
           {statusTexto}
@@ -242,41 +263,58 @@ const DashboardInicio = () => {
 
   return (
     <Box sx={{ width: '100%', pb: 2 }}>
-      <Typography variant="h4" sx={{ mb: 3, fontFamily: 'Poppins, sans-serif', fontWeight: 800, color: corTextoPrincipal, fontSize: { xs: '1.5rem', sm: '1.75rem' }, letterSpacing: '-0.5px' }}>
+      <Typography variant="h4" sx={{ mb: 3, fontFamily: 'Poppins, sans-serif', fontWeight: 800, color: corTextoPrincipal, fontSize: { xs: '1.4rem', sm: '1.75rem' }, letterSpacing: '-0.5px', px: { xs: 1, sm: 0 } }}>
         Dashboard Geral
       </Typography>
 
       {isSandbox && (
-        <Alert severity="info" sx={{ mb: 3, borderRadius: '12px', fontFamily: 'Poppins', fontWeight: 500 }}>
+        <Alert severity="info" sx={{ mb: 3, borderRadius: '12px', fontFamily: 'Poppins', fontWeight: 500, mx: { xs: 1, sm: 0 } }}>
           <b>Modo Sandbox:</b> Exibindo métricas e logs simulados da planta fabril.
         </Alert>
       )}
 
-      {/* CARDS SUPERIORES */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} lg={4}>
-          <CardMetrica titulo="Total do Estoque" valor={metrics.total.toString().padStart(2, '0')} icone={<ConstructionIcon />} corStatus={isLight ? '#14213D' : '#00f2ff'} progressoSimulado={100} />
-        </Grid>
-        <Grid item xs={12} sm={6} lg={4}>
-          <CardMetrica titulo="Ferramentas Disponíveis" valor={metrics.disponiveis.toString().padStart(2, '0')} icone={<HandymanIcon />} corStatus="#85FF80" progressoSimulado={pctDisponivel} />
-        </Grid>
-        <Grid item xs={12} sm={6} lg={4}>
-          <CardMetrica titulo="Em Uso Ativo" valor={metrics.emUso.toString().padStart(2, '0')} icone={<WarningAmberIcon />} corStatus="#FFB347" progressoSimulado={pctEmUso} />
-        </Grid>
-      </Grid>
+      {/* CARDS SUPERIORES — 🌟 FAIXA DE TRANSIÇÃO PROTOCOLADA POR SEBASTIAN */}
+      <Box 
+        sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: { 
+            xs: '1fr',           // Celular: 1 por linha
+            md: '1fr 1fr',       // 💡 Notebooks médios/Tablets: Fica em 2 colunas para dar espaço ao menu lateral!
+            lg: '1fr 1fr 1fr'    // Monitores grandes: Abre as 3 colunas paralelas originais
+          }, 
+          gap: 3, 
+          mb: 4, 
+          px: { xs: 1, sm: 0 },
+          width: '100%'
+        }}
+      >
+        <CardMetrica titulo="Total do Estoque" valor={metrics.total.toString().padStart(2, '0')} icone={<ConstructionIcon />} corStatus={isLight ? '#14213D' : '#00f2ff'} progressoSimulado={100} />
+        <CardMetrica titulo="Ferramentas Disponíveis" valor={metrics.disponiveis.toString().padStart(2, '0')} icone={<HandymanIcon />} corStatus="#85FF80" progressoSimulado={pctDisponivel} />
+        <CardMetrica titulo="Em Uso Ativo" valor={metrics.emUso.toString().padStart(2, '0')} icone={<WarningAmberIcon />} corStatus="#FFB347" progressoSimulado={pctEmUso} />
+      </Box>
 
-      {/* PAINÉIS INFERIORES */}
-      <Box sx={{ display: 'flex', gap: 3, alignItems: 'stretch', width: '100%', flexDirection: { xs: 'column', md: 'row' } }}>
+      {/* PAINÉIS INFERIORES — 🌟 FAIXA DE TRANSIÇÃO PROTOCOLADA POR SEBASTIAN */}
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          gap: 3, 
+          alignItems: 'stretch', 
+          width: '100%', 
+          // 💡 O PULO DO GATO: Transiciona para coluna em 'lg' (1280px) em vez de empurrar as caixas no sufoco
+          flexDirection: { xs: 'column', lg: 'row' }, 
+          px: { xs: 1, sm: 0 } 
+        }}
+      >
         
         {/* Painel Esquerdo: Últimas Movimentações */}
-        <Paper elevation={0} sx={{ flex: 1, p: 3, borderRadius: '20px', border: '1px solid', borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)', bgcolor: isLight ? '#ffffff' : 'rgba(20, 33, 61, 0.7)', backdropFilter: 'blur(10px)', display: 'flex', flexDirection: 'column', transition: 'border-color 0.3s ease, box-shadow 0.3s ease', '&:hover': { borderColor: 'rgba(133, 255, 128, 0.3)', boxShadow: isLight ? 'none' : '0 0 20px rgba(133, 255, 128, 0.05)' } }}>
+        <Paper elevation={0} sx={{ flex: 1, p: { xs: 2.5, sm: 3 }, borderRadius: '20px', border: '1px solid', borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)', bgcolor: isLight ? '#ffffff' : 'rgba(20, 33, 61, 0.7)', backdropFilter: 'blur(10px)', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6" sx={{ fontFamily: 'Poppins', fontWeight: 700, color: corTextoPrincipal }}>Últimas Movimentações</Typography>
+            <Typography variant="h6" sx={{ fontFamily: 'Poppins', fontWeight: 700, color: corTextoPrincipal, fontSize: { xs: '1.05rem', sm: '1.25rem' } }}>Últimas Movimentações</Typography>
             <IconButton size="small" onClick={() => navigate('/dashboard/em-uso')} sx={{ color: corTextoPrincipal, '&:hover': { bgcolor: 'action.hover' } }}><ArrowForwardIcon fontSize="small" /></IconButton>
           </Box>
           <Divider sx={{ borderColor: isLight ? 'divider' : 'rgba(255,255,255,0.05)' }} />
           
-          <Stack spacing={0.5} sx={{ flexGrow: 1, justifyContent: 'flex-start', maxHeight: '420px', overflowY: 'auto', pr: 0.5 }}>
+          <Stack spacing={0.5} sx={{ flexGrow: 1, justifyContent: 'flex-start', maxHeight: { xs: '320px', sm: '420px' }, overflowY: 'auto', pr: 0.5 }}>
             {movimentacoes.map((mov, idx) => {
               const codigoReal = mov.codigoPatrimonio || mov.ferramenta?.codigoPatrimonio || 'N/A';
               const nomeReal = mov.nomeFerramenta || mov.ferramenta?.nome || 'Ativo Omissor';
@@ -323,14 +361,14 @@ const DashboardInicio = () => {
         </Paper>
 
         {/* Painel Direito: Alertas Urgentes */}
-        <Paper elevation={0} sx={{ flex: 1, p: 3, borderRadius: '20px', border: '1px solid', borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)', bgcolor: isLight ? '#ffffff' : 'rgba(20, 33, 61, 0.7)', backdropFilter: 'blur(10px)', display: 'flex', flexDirection: 'column', transition: 'border-color 0.3s ease, box-shadow 0.3s ease', '&:hover': { borderColor: 'rgba(255, 105, 97, 0.3)', boxShadow: isLight ? 'none' : '0 0 20px rgba(255, 105, 97, 0.05)' } }}>
+        <Paper elevation={0} sx={{ flex: 1, p: { xs: 2.5, sm: 3 }, borderRadius: '20px', border: '1px solid', borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)', bgcolor: isLight ? '#ffffff' : 'rgba(20, 33, 61, 0.7)', backdropFilter: 'blur(10px)', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6" sx={{ fontFamily: 'Poppins', fontWeight: 700, color: corTextoPrincipal }}>Alertas Urgentes</Typography>
+            <Typography variant="h6" sx={{ fontFamily: 'Poppins', fontWeight: 700, color: corTextoPrincipal, fontSize: { xs: '1.05rem', sm: '1.25rem' } }}>Alertas Urgentes</Typography>
             <IconButton size="small" onClick={() => navigate('/dashboard/ocorrencias')} sx={{ color: corTextoPrincipal, '&:hover': { bgcolor: 'action.hover' } }}><ArrowForwardIcon fontSize="small" /></IconButton>
           </Box>
           <Divider sx={{ borderColor: isLight ? 'divider' : 'rgba(255,255,255,0.05)' }} />
           
-          <Stack spacing={0.5} sx={{ flexGrow: 1, justifyContent: 'flex-start', maxHeight: '420px', overflowY: 'auto', pr: 0.5 }}>
+          <Stack spacing={0.5} sx={{ flexGrow: 1, justifyContent: 'flex-start', maxHeight: { xs: '320px', sm: '420px' }, overflowY: 'auto', pr: 0.5 }}>
             {alertas.map((alerta, idx) => {
               const codigoReal = alerta.patrimonioExibicao;
               const nomeReal = alerta.nomeFerramenta || alerta.ferramenta?.nome || 'Ativo Sem Nome';
@@ -349,8 +387,7 @@ const DashboardInicio = () => {
                 </React.Fragment>
               );
             })}
-            {/* 🌟 RESTAURADO: Cor temática de sucesso (#85FF80) para a planta limpa */}
-            {alertas.length === 0 && <Typography variant="caption" sx={{ py: 4, textAlign: 'center', color: '#85FF80', fontWeight: 600, fontFamily: 'Poppins' }}>Planta 100% operacional. Sem ocorrências em aberto!</Typography>}
+            {alertas.length === 0 && <Typography variant="caption" sx={{ py: 4, textAlign: 'center', color: 'text.secondary', fontWeight: 500, fontFamily: 'Poppins' }}>Planta 100% operacional. Sem ocorrências em aberto!</Typography>}
           </Stack>
         </Paper>
 

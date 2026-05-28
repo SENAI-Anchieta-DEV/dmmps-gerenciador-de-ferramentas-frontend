@@ -18,7 +18,9 @@ import {
   Stack, 
   TextField, 
   IconButton,
-  Tooltip
+  Tooltip,
+  InputBase,
+  useMediaQuery
 } from '@mui/material';
 
 import ConstructionIcon from '@mui/icons-material/Construction';
@@ -30,19 +32,20 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SearchIcon from '@mui/icons-material/Search'; // 🌟 ADICIONADO: Ícone para a barra de pesquisa mobile interna
 
-// 🌟 NOVOS ÍCONES PARA O FLUXO DE EMPRÉSTIMO
-import PlayForWorkIcon from '@mui/icons-material/PlayForWork'; // Ícone para Retirar
-import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn'; // Ícone para Devolver
+// NOVOS ÍCONES PARA O FLUXO DE EMPRÉSTIMO
+import PlayForWorkIcon from '@mui/icons-material/PlayForWork'; 
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn'; 
 
 import API_BASE_URL from '../apiConfig';
 
 // 🎯 MAPEAMENTO GLOBAL DAS CORES OFICIAIS DO SEU TOOLHUB
 const getStatusColor = (status) => {
-  if (/manutencao/i.test(status)) return '#FFB347'; // Amarelo oficial da legenda
-  if (/descartada|indisponivel/i.test(status)) return '#FF4747'; // Vermelho de descarte
-  if (/em_uso|uso/i.test(status)) return '#FFB347'; // Laranja/Amarelo para Em Uso para manter o padrão visual
-  return '#85FF80'; // Verde oficial de Disponível
+  if (/manutencao/i.test(status)) return '#FFB347'; 
+  if (/descartada|indisponivel/i.test(status)) return '#FF4747'; 
+  if (/em_uso|uso/i.test(status)) return '#FFB347'; 
+  return '#85FF80'; 
 };
 
 // --- COMPONENTE DO CARD DE LISTAGEM ---
@@ -83,24 +86,23 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, on
         }
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Avatar sx={{ bgcolor: `${corStatus}15`, color: corStatus, border: '1px solid', borderColor: `${corStatus}30`, width: 48, height: 48 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+        <Avatar sx={{ bgcolor: `${corStatus}15`, color: corStatus, border: '1px solid', borderColor: `${corStatus}30`, width: 48, height: 48, flexShrink: 0 }}>
           <ConstructionIcon />
         </Avatar>
 
-        <Box sx={{ flexGrow: 1, ml: 2, pr: 8 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: 'text.primary', fontFamily: 'Poppins' }}>
+        {/* 🌟 BLINDAGEM ANTI-QUEBRA: minWidth 0 e ellipsis protegem o layout de estourar horizontamente */}
+        <Box sx={{ flexGrow: 1, ml: 2, pr: 7, minWidth: 0 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: 'text.primary', fontFamily: 'Poppins', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {nome}
           </Typography>
-          <Typography variant="body2" sx={{ fontFamily: '"JetBrains Mono", monospace', color: 'text.secondary', fontSize: '0.78rem', letterSpacing: '0.5px', fontWeight: 600, mt: 0.5 }}>
+          <Typography variant="body2" sx={{ fontFamily: '"JetBrains Mono", monospace', color: 'text.secondary', fontSize: '0.78rem', letterSpacing: '0.5px', fontWeight: 600, mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {codigo}
           </Typography>
         </Box>
 
-        {/* 🛠️ ÁREA DE BOTÕES DE AÇÃO CONTEXTUAIS (LIXEIRA OU EMPRÉSTIMO) */}
-        <Box sx={{ position: 'absolute', top: 15, right: 15, display: 'flex', gap: 1 }}>
-          
-          {/* Botão Dinâmico do Técnico (Solicitar ou Devolver) */}
+        {/* 🛠️ ÁREA DE BOTÕES DE AÇÃO CONTEXTUAIS */}
+        <Box sx={{ position: 'absolute', top: 15, right: 15, display: 'flex', gap: 1, flexShrink: 0 }}>
           {!podeModificar && (isDisponivel || isEmUso) && (
             <Tooltip title={isDisponivel ? "Solicitar Empréstimo" : "Devolver Ferramenta"}>
               <IconButton
@@ -119,7 +121,6 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, on
             </Tooltip>
           )}
 
-          {/* Botão de Deletar para Admin/Almoxarife */}
           {podeModificar && (
             <IconButton 
               onClick={(e) => {
@@ -156,28 +157,27 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, on
 const Ferramentas = () => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
+  // CONTEXTO GLOBAL + BUSCA INTERNA MOBILE
   const { searchTerm } = useOutletContext();
+  const [buscaInterna, setBuscaInterna] = useState('');
 
-  // Estados da Listagem e Conexão
   const [ferramentas, setFerramentas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState('');
 
-  // Modais de Detalhes e Delete
   const [modalOpen, setModalOpen] = useState(false);
   const [toolDetalhada, setToolDetalhada] = useState(null);
   const [confirmarDeleteOpen, setConfirmarDeleteOpen] = useState(false);
   const [toolParaDeletar, setToolParaDeletar] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  // 🌟 ESTADOS PARA OS NOVOS MODAIS DE EMPRÉSTIMO
   const [emprestimoModalOpen, setEmprestimoModalOpen] = useState(false);
   const [toolEmprestimo, setToolEmprestimo] = useState(null);
-  const [tipoAcaoEmprestimo, setTipoAcaoEmprestimo] = useState(''); // 'SOLICITAR' ou 'DEVOLVER'
+  const [tipoAcaoEmprestimo, setTipoAcaoEmprestimo] = useState(''); 
   const [emprestimoLoading, setEmprestimoLoading] = useState(false);
 
-  // Subpágina Cadastro e Formulário
   const [exibirCadastro, setExibirCadastro] = useState(false);
   const [formNome, setFormNome] = useState('');
   const [formPatrimonio, setFormPatrimonio] = useState('');
@@ -360,75 +360,113 @@ const Ferramentas = () => {
     );
   }
 
-  const termo = (searchTerm || '').toLowerCase();
+  const termo = (isMobile ? buscaInterna : searchTerm || '').toLowerCase();
   
-  // 🌟 FILTER OPERACIONAL CIRÚRGICO: Agora lista EXCLUSIVAMENTE ferramentas disponíveis para TODOS os atores, evitando duplicidade com o Em Uso
   const ferramentasFiltradas = ferramentas.filter(f => {
     const correspondeBusca = (f.nome || '').toLowerCase().includes(termo) || 
                              (f.codigoPatrimonio || '').toLowerCase().includes(termo);
-    
-    // 🔐 REGRA DE ESTOQUE: Apenas o que estiver com o status "DISPONIVEL" real entra nesta página
     const estaDisponivel = (f.status || '').toUpperCase() === 'DISPONIVEL';
 
     return correspondeBusca && estaDisponivel;
   });
 
-  if (exibirCadastro) {
+if (exibirCadastro) {
     return (
-      <Box sx={{ width: '100%', pb: 5 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 4 }}>
+      <Box sx={{ width: '100%', pb: 5, px: { xs: 1, sm: 3, md: 0 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 4, px: { xs: 1, sm: 0 } }}>
           <IconButton onClick={() => { setExibirCadastro(false); setCadastroErro(''); }} sx={{ color: isLight ? '#14213D' : '#f5f5f5' }}>
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h4" sx={{ fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5', letterSpacing: '-0.5px' }}>
+          <Typography variant="h4" sx={{ fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5', fontSize: { xs: '1.6rem', sm: '2.125rem' }, letterSpacing: '-0.5px' }}>
             Nova Ferramenta
           </Typography>
         </Box>
 
-        {cadastroErro && <Alert severity="error" sx={{ mb: 3, borderRadius: '14px' }}>{cadastroErro}</Alert>}
-        {cadastroSucesso && <Alert severity="success" sx={{ mb: 3, borderRadius: '14px', fontWeight: 600 }}>Ferramenta cadastrada!</Alert>}
+        {cadastroErro && <Alert severity="error" sx={{ mb: 3, borderRadius: '14px', mx: { xs: 1, sm: 0 } }}>{cadastroErro}</Alert>}
+        {cadastroSucesso && <Alert severity="success" sx={{ mb: 3, borderRadius: '14px', fontWeight: 600, mx: { xs: 1, sm: 0 } }}>Ferramenta cadastrada!</Alert>}
 
-        <Paper elevation={0} component="form" onSubmit={handleCadastrarFerramenta} sx={{ p: 4, borderRadius: '24px', border: '1px solid', borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)', bgcolor: 'background.paper', width: '100%', maxWidth: '1100px' }}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField required fullWidth label="Nome da Ferramenta" variant="outlined" value={formNome} onChange={(e) => setFormNome(e.target.value)} sx={inputStyles} />
-            </Grid>
-            <Grid item xs={12} sm={4}>
+        {/* 🌟 CONTEINER RECALIBRADO: Elimina o sufoco visual adaptando o fundo dinamicamente */}
+        <Box 
+          component="form" 
+          onSubmit={handleCadastrarFerramenta} 
+          sx={{ 
+            p: { xs: 0, sm: 4 },           // Remove o preenchimento rígido no mobile para ganhar área útil
+            bgcolor: { xs: 'transparent', sm: 'background.paper' }, // Remove o bloco pesado no celular
+            border: { xs: 'none', sm: '1px solid' },
+            borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)', 
+            borderRadius: '24px',
+            width: '100%', 
+            maxWidth: '1100px',
+            boxSizing: 'border-box'
+          }}
+        >
+          {/* 🌟 O SEGREDO: Stack força 100% de ocupação horizontal em cada linha com espaçamento uniforme */}
+          <Stack spacing={3} sx={{ width: '100%', px: { xs: 1, sm: 0 }, boxSizing: 'border-box' }}>
+            
+            <TextField required fullWidth label="Nome da Ferramenta" variant="outlined" value={formNome} onChange={(e) => setFormNome(e.target.value)} sx={inputStyles} />
+            
+            {/* No mobile vira coluna de 100% de largura; no desktop volta para a linha com divisões normais */}
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3, width: '100%' }}>
               <TextField required fullWidth label="Código do Patrimônio" variant="outlined" value={formPatrimonio} onChange={(e) => setFormPatrimonio(e.target.value)} sx={patrimonioInputStyles} />
-            </Grid>
-            <Grid item xs={12} sm={4}>
               <TextField required fullWidth label="Fabricante / Marca" variant="outlined" value={formFabricante} onChange={(e) => setFormFabricante(e.target.value)} sx={inputStyles} />
-            </Grid>
-            <Grid item xs={12} sm={4}>
               <TextField required fullWidth label="Localização (Ex: Gaveta B3)" variant="outlined" value={formLocalizacao} onChange={(e) => setFormLocalizacao(e.target.value)} sx={inputStyles} />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField fullWidth multiline rows={4} label="Descrição / Especificações Técnicas" variant="outlined" value={formDescricao} onChange={(e) => setFormDescricao(e.target.value)} sx={inputStyles} />
-            </Grid>
-            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 1 }}>
-              <Button variant="text" onClick={() => setExibirCadastro(false)} sx={{ borderRadius: '12px', textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, color: 'text.secondary', px: 4 }}>Cancelar</Button>
-              <Button type="submit" variant="contained" disabled={cadastroLoading} sx={{ borderRadius: '14px', textTransform: 'none', fontFamily: 'Poppins', fontWeight: 800, bgcolor: isLight ? '#14213D' : '#00f2ff', color: isLight ? '#ffffff' : '#14213D', px: 5, py: 1.5 }}>
+            </Box>
+
+            <TextField fullWidth multiline rows={4} label="Descrição / Especificações Técnicas" variant="outlined" value={formDescricao} onChange={(e) => setFormDescricao(e.target.value)} sx={inputStyles} />
+            
+            {/* Botões de ação com comportamento responsivo premium */}
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column-reverse', sm: 'row' }, justifyContent: 'flex-end', gap: 2, mt: 1, width: '100%' }}>
+              <Button variant="text" onClick={() => setExibirCadastro(false)} sx={{ borderRadius: '12px', textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, color: 'text.secondary', px: 4, py: { xs: 1.5, sm: 0 }, width: { xs: '100%', sm: 'auto' } }}>
+                Cancelar
+              </Button>
+              <Button type="submit" variant="contained" disabled={cadastroLoading} sx={{ borderRadius: '14px', textTransform: 'none', fontFamily: 'Poppins', fontWeight: 800, bgcolor: isLight ? '#14213D' : '#00f2ff', color: isLight ? '#ffffff' : '#14213D', px: 5, py: 1.5, width: { xs: '100%', sm: 'auto' } }}>
                 {cadastroLoading ? <CircularProgress size={24} color="inherit" /> : 'Registrar Ativo'}
               </Button>
-            </Grid>
-          </Grid>
-        </Paper>
+            </Box>
+
+          </Stack>
+        </Box>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ width: '100%', pb: 5 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+    <Box sx={{ width: '100%', pb: 5, px: { xs: 2, sm: 3, md: 0 } }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 4, gap: 2 }}>
         <Typography variant="h4" sx={{ fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5', letterSpacing: '-0.5px' }}>
           Ferramentas
         </Typography>
         {verificarPermissaoAdministrativa() && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setExibirCadastro(true)} sx={{ borderRadius: '16px', textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, bgcolor: isLight ? '#14213D' : '#00f2ff', color: isLight ? '#ffffff' : '#14213D', px: 2.5, py: 1 }}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setExibirCadastro(true)} sx={{ borderRadius: '16px', textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, bgcolor: isLight ? '#14213D' : '#00f2ff', color: isLight ? '#ffffff' : '#14213D', px: 2.5, py: 1, width: { xs: '100%', sm: 'auto' } }}>
             Nova Ferramenta
           </Button>
         )}
       </Box>
+
+      {/* 🌟 BARRA DE BUSCA NATIVA MOBILE: Ativada de forma reativa para as telas menores */}
+      {isMobile && (
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            border: '1px solid', 
+            borderColor: 'divider', 
+            borderRadius: '24px', 
+            px: 2, 
+            mb: 4,
+            bgcolor: 'background.paper', 
+            width: '100%' 
+          }}
+        >
+          <InputBase 
+            placeholder="Buscar ferramenta disponível..." 
+            value={buscaInterna}
+            onChange={(e) => setBuscaInterna(e.target.value)}
+            sx={{ ml: 1, flex: 1, p: '10px 0', fontSize: '0.85rem', fontFamily: 'Poppins' }} 
+          />
+          <IconButton size="small"><SearchIcon sx={{ fontSize: '1.2rem' }} /></IconButton>
+        </Box>
+      )}
 
       {erro && <Alert severity="error" sx={{ mb: 3, borderRadius: '12px' }}>{erro}</Alert>}
       
@@ -451,15 +489,13 @@ const Ferramentas = () => {
 
       {ferramentasFiltradas.length === 0 && !loading && !erro && (
         <Typography variant="body1" sx={{ mt: 6, textAlign: 'center', color: 'text.secondary', fontFamily: 'Poppins' }}>
-          {searchTerm ? 'Nenhuma ferramenta corresponde à sua busca.' : 'Nenhuma ferramenta disponível no estoque momento.'}
+          {termo ? 'Nenhuma ferramenta corresponde à sua busca.' : 'Nenhuma ferramenta disponível no estoque no momento.'}
         </Typography>
       )}
 
       {/* MODAL DE CONFIRMAÇÃO DE EMPRÉSTIMO */}
-      <Dialog open={emprestimoModalOpen} onClose={() => setEmprestimoModalOpen(false)} PaperProps={{ sx: { borderRadius: '20px', p: 1, bgcolor: isLight ? '#ffffff' : '#14213D' } }}>
-        <DialogTitle sx={{ fontFamily: 'Poppins', fontWeight: 700 }}>
-          Confirmar Solicitação de Empréstimo?
-        </DialogTitle>
+      <Dialog open={emprestimoModalOpen} onClose={() => setEmprestimoModalOpen(false)} PaperProps={{ sx: { borderRadius: '20px', p: 1, bgcolor: isLight ? '#ffffff' : '#14213D', minWidth: { xs: '90%', sm: '380px' } } }}>
+        <DialogTitle sx={{ fontFamily: 'Poppins', fontWeight: 700 }}>Confirmar Solicitação de Empréstimo?</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ color: 'text.secondary', fontFamily: 'Poppins' }}>
             Você está prestes a retirar a ferramenta <strong>{toolEmprestimo?.nome}</strong> (Patrimônio: {toolEmprestimo?.codigoPatrimonio}). O status do ativo mudará para EM USO.
@@ -472,9 +508,7 @@ const Ferramentas = () => {
             variant="contained" 
             disabled={emprestimoLoading} 
             sx={{ 
-              textTransform: 'none', 
-              fontFamily: 'Poppins', 
-              fontWeight: 700, 
+              textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, 
               bgcolor: isLight ? '#14213D' : '#00f2ff', 
               color: !isLight ? '#14213D' : 'white', 
               borderRadius: '10px',
@@ -539,7 +573,7 @@ const Ferramentas = () => {
       </Dialog>
 
       {/* MODAL DELETE */}
-      <Dialog open={confirmarDeleteOpen} onClose={() => setConfirmarDeleteOpen(false)} PaperProps={{ sx: { borderRadius: '20px', p: 1, bgcolor: isLight ? '#ffffff' : '#14213D' } }}>
+      <Dialog open={confirmarDeleteOpen} onClose={() => setConfirmarDeleteOpen(false)} PaperProps={{ sx: { borderRadius: '20px', p: 1, bgcolor: isLight ? '#ffffff' : '#14213D', minWidth: { xs: '90%', sm: '380px' } } }}>
         <DialogTitle sx={{ fontFamily: 'Poppins', fontWeight: 700 }}>Remover Ativo do Sistema?</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ color: 'text.secondary', fontFamily: 'Poppins' }}>

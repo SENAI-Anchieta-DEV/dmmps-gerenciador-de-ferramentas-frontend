@@ -465,7 +465,7 @@ const ListarPerfis = () => {
               </Grid>
             </Stack>
           )}
-        </DialogContent>
+        </DialogContent>/*556*/
         <DialogActions sx={{ px: 3, pt: 1, pb: 2 }}>
           <Button onClick={() => setModalOpen(false)} sx={{ textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, color: 'text.primary', borderRadius: '12px' }}>Fechar Ficha</Button>
         </DialogActions>

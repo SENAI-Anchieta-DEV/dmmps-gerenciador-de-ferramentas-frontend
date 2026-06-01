@@ -134,7 +134,7 @@ const Perfil = () => {
             </Box>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item xs={12}>/*6566*/
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, borderRadius: '14px', border: '1px dashed', borderColor: 'divider' }}>
               <AdminPanelSettingsIcon sx={{ color: '#FFB347', flexShrink: 0 }} />
               <Box sx={{ minWidth: 0, flex: 1 }}>

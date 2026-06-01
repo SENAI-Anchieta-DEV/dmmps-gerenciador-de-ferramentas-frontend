@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { 
   Box, Typography, Paper, TextField, InputAdornment, 
-  IconButton, Chip, Avatar, useTheme, CircularProgress, Stack, Alert
+  IconButton, Chip, Avatar, useTheme, CircularProgress, Stack, Alert, useMediaQuery
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -11,8 +11,8 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import BuildIcon from '@mui/icons-material/Build';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import Brightness4Icon from '@mui/icons-material/Brightness4'; // 🌟 ADICIONADO: Ícone do modo claro
-import Brightness7Icon from '@mui/icons-material/Brightness7'; // 🌟 ADICIONADO: Ícone do modo escuro
+import Brightness4Icon from '@mui/icons-material/Brightness4'; 
+import Brightness7Icon from '@mui/icons-material/Brightness7'; 
 
 import API_BASE_URL from '../apiConfig';
 
@@ -49,13 +49,13 @@ const HistoricoItem = ({ registro }) => {
       }}
     >
       {/* Ícone de Fluxo Operacional */}
-      <Avatar sx={{ bgcolor: isAberto ? 'rgba(255, 179, 71, 0.1)' : (foiDanificada ? 'rgba(255, 71, 71, 0.1)' : 'rgba(133, 255, 128, 0.1)'), color: isAberto ? '#FFB347' : (foiDanificada ? '#FF4747' : '#85FF80'), width: 48, height: 48 }}>
+      <Avatar sx={{ bgcolor: isAberto ? 'rgba(255, 179, 71, 0.1)' : (foiDanificada ? 'rgba(255, 71, 71, 0.1)' : 'rgba(133, 255, 128, 0.1)'), color: isAberto ? '#FFB347' : (foiDanificada ? '#FF4747' : '#85FF80'), width: 48, height: 48, flexShrink: 0 }}>
         {isAberto ? <BuildIcon /> : <CheckCircleOutlineIcon />}
       </Avatar>
 
       {/* Info do Ativo */}
-      <Box sx={{ flex: 1.5, minWidth: 0 }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 700, fontFamily: 'Poppins', color: 'text.primary' }}>
+      <Box sx={{ flex: 1.5, minWidth: 0, width: '100%' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, fontFamily: 'Poppins', color: 'text.primary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {registro.nomeFerramenta}
         </Typography>
         <Typography variant="body2" sx={{ fontFamily: '"JetBrains Mono", monospace', color: 'text.secondary', fontSize: '0.75rem', mt: 0.5, fontWeight: 600 }}>
@@ -64,15 +64,15 @@ const HistoricoItem = ({ registro }) => {
       </Box>
 
       {/* Linha do Tempo (Retirada e Devolução) */}
-      <Box sx={{ flex: 2.5, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+      <Box sx={{ flex: 2.5, display: 'flex', flexDirection: 'column', gap: 0.5, width: '100%' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <ArrowUpwardIcon sx={{ color: '#85FF80', fontSize: '1rem' }} />
+          <ArrowUpwardIcon sx={{ color: '#85FF80', fontSize: '1rem', flexShrink: 0 }} />
           <Typography variant="body2" sx={{ fontFamily: 'Poppins', color: 'text.secondary', fontSize: '0.82rem' }}>
             Retirada: <b style={{ color: isLight ? '#14213D' : '#f5f5f5' }}>{formatarDataHora(registro.dataRetirada)}</b>
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <ArrowDownwardIcon sx={{ color: isAberto ? 'text.disabled' : (foiDanificada ? '#FF4747' : '#00f2ff'), fontSize: '1rem' }} />
+          <ArrowDownwardIcon sx={{ color: isAberto ? 'text.disabled' : (foiDanificada ? '#FF4747' : '#00f2ff'), fontSize: '1rem', flexShrink: 0 }} />
           <Typography variant="body2" sx={{ fontFamily: 'Poppins', color: 'text.secondary', fontSize: '0.82rem' }}>
             Retorno: <b style={{ color: isAberto ? theme.palette.text.disabled : (isLight ? '#14213D' : '#f5f5f5') }}>{formatarDataHora(registro.dataDevolucao)}</b>
           </Typography>
@@ -80,7 +80,7 @@ const HistoricoItem = ({ registro }) => {
       </Box>
 
       {/* Chips de Status Final */}
-      <Box sx={{ textAlign: { xs: 'left', md: 'right' }, flexShrink: 0, pl: { xs: 0, md: 2 } }}>
+      <Box sx={{ textAlign: { xs: 'left', md: 'right' }, flexShrink: 0, pl: { xs: 0, md: 2 }, width: { xs: '100%', md: 'auto' }, pt: { xs: 1, md: 0 }, borderTop: { xs: '1px dashed', md: 'none' }, borderColor: 'divider' }}>
         {isAberto ? (
           <Chip label="Em Uso Ativo" size="small" sx={{ fontWeight: 800, fontFamily: 'Poppins', fontSize: '0.65rem', color: '#FFB347', border: '1.5px solid #FFB347', bgcolor: 'transparent' }} />
         ) : (
@@ -103,7 +103,8 @@ const HistoricoItem = ({ registro }) => {
 const Historico = () => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
-  const { toggleColorMode, searchTerm } = useOutletContext(); // 🌟 ATUALIZADO: Captura o toggleColorMode enviado do Layout
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { toggleColorMode, searchTerm } = useOutletContext(); 
 
   const [loading, setLoading] = useState(true);
   const [historicoList, setHistoricoList] = useState([]);
@@ -149,28 +150,41 @@ const Historico = () => {
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}><CircularProgress sx={{ color: isLight ? 'primary.main' : '#00f2ff' }} /></Box>;
 
   return (
-    // 🌟 ATUALIZADO: Incluído position: 'relative' e modificado espaçamento para pt: 8 para acomodar perfeitamente o botão flutuante
-    <Box sx={{ width: '100%', maxWidth: '1200px', mx: 'auto', position: 'relative', pt: 8, pb: 5 }}>
+    /* 🌟 FIX DE RESPONSIVIDADE E ESPAÇAMENTO LATERAL: Ajustado pt e px para blindar contra colisões laterais e alinhar perfeitamente */
+    <Box sx={{ 
+      width: '100%', 
+      maxWidth: '1200px', 
+      mx: 'auto', 
+      position: 'relative', 
+      pt: { xs: 4, sm: 6, md: 8 }, 
+      pb: 5,
+      px: { xs: 2.5, sm: 4, md: 5 },
+      boxSizing: 'border-box'
+    }}>
       
-      {/* 🌟 ADICIONADO: Painel isolado com botão dinâmico de troca de tema (Sol/Lua) alinhado no topo direito */}
-      <Box sx={{ position: 'absolute', top: 20, right: 0 }}>
-        <IconButton 
-          onClick={toggleColorMode} 
-          sx={{ 
-            color: 'text.primary', 
-            bgcolor: 'action.hover', 
-            '&:hover': { bgcolor: 'action.selected' } 
-          }}
-        >
-          {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-        </IconButton>
-      </Box>
+      {/* Botão de Tema no canto superior direito (Escondido no mobile para sumir com duplicidades) */}
+      {!isMobile && (
+        <Box sx={{ position: 'absolute', top: { xs: 24, md: 40 }, right: 0, zIndex: 10 }}>
+          <IconButton 
+            onClick={toggleColorMode} 
+            sx={{ 
+              color: 'text.primary', 
+              bgcolor: 'action.hover', 
+              '&:hover': { bgcolor: 'action.selected' } 
+            }}
+          >
+            {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+          </IconButton>
+        </Box>
+      )}
 
-      <Typography variant="h4" sx={{ mb: 4, fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <HistoryIcon sx={{ fontSize: '2.5rem' }} /> Histórico de Movimentação
+      {/* Título Histórico */}
+      <Typography variant="h4" sx={{ mb: 4, fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5', display: 'flex', alignItems: 'center', gap: 1.5, fontSize: { xs: '1.6rem', sm: '2.125rem' } }}>
+        <HistoryIcon sx={{ fontSize: { xs: '2.2rem', sm: '2.5rem' } }} /> Histórico de Movimentação
       </Typography>
 
-      <Box sx={{ mb: 4, display: 'flex', gap: 2 }}>
+      {/* Barra de Busca */}
+      <Box sx={{ mb: 4, display: 'flex', gap: 2, width: '100%' }}>
         <TextField 
           fullWidth 
           placeholder="Filtrar por nome do ativo ou patrimônio..." 
@@ -182,7 +196,7 @@ const Historico = () => {
             sx: { borderRadius: '14px', bgcolor: 'background.paper', fontFamily: 'Poppins', fontSize: '0.88rem', '& fieldset': { borderColor: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.05)' } } 
           }} 
         />
-        <IconButton sx={{ border: '1px solid', borderColor: isLight ? 'primary.main' : '#00f2ff', borderRadius: '14px', p: 1.2, bgcolor: 'background.paper', color: isLight ? 'primary.main' : '#00f2ff' }}><FilterListIcon fontSize="small" /></IconButton>
+        <IconButton sx={{ border: '1px solid', borderColor: isLight ? 'primary.main' : '#00f2ff', borderRadius: '14px', p: 1.2, bgcolor: 'background.paper', color: isLight ? 'primary.main' : '#00f2ff', flexShrink: 0 }}><FilterListIcon fontSize="small" /></IconButton>
       </Box>
 
       {isSandbox && (
@@ -198,7 +212,7 @@ const Historico = () => {
           </Typography>
         </Box>
       ) : (
-        <Stack spacing={2.5}>
+        <Stack spacing={2.5} sx={{ width: '100%' }}>
           {historicoFiltrado.map((item, index) => (
             <HistoricoItem key={item.id || index} registro={item} />
           ))}

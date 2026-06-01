@@ -10,7 +10,7 @@ import {
   Avatar, 
   useTheme, 
   Container, 
-  Grid, 
+  Stack, 
   MenuItem,
   CircularProgress
 } from '@mui/material';
@@ -54,7 +54,6 @@ const CadastrarPerfil = () => {
     setCadastroLoading(true);
 
     try {
-      // 🎯 AJUSTE DA CIRURGIA: Adicionado /api/v1 para espelhar perfeitamente a rota do Postman
       const response = await fetch(`${API_BASE_URL}/api/v1/usuarios`, {
         method: 'POST',
         headers: { 
@@ -79,8 +78,8 @@ const CadastrarPerfil = () => {
 
   const inputStyles = {
     '& .MuiOutlinedInput-root': {
-      borderRadius: '12px',
-      backgroundColor: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
+      borderRadius: '14px',
+      backgroundColor: 'background.paper',
       fontFamily: 'Poppins, sans-serif',
       transition: 'all 0.3s ease',
       '& fieldset': { 
@@ -92,6 +91,7 @@ const CadastrarPerfil = () => {
       },
       '&.Mui-focused fieldset': {
         borderColor: isLight ? 'primary.main' : '#00f2ff',
+        borderWidth: '2px'
       },
       '& input': {
         color: isLight ? 'text.primary' : '#ffffff',
@@ -112,87 +112,82 @@ const CadastrarPerfil = () => {
   return (
     <Box sx={{ 
       width: '100%', 
-      minHeight: '100vh', 
+      minHeight: '100vh',
       position: 'relative', 
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      py: 6,
+      flexDirection: 'column',
+      pt: { xs: 4, sm: 6, md: 8 }, 
+      pb: 5,
+      /* 🌟 CORRIGIDO: Injetado o padding de proteção lateral para criar o mesmo recuo da listagem */
+      px: { xs: 2.5, sm: 4, md: 5 }, 
       bgcolor: 'background.default',
-      backgroundImage: isLight 
-        ? 'radial-gradient(rgba(0, 0, 0, 0.1) 1.5px, transparent 1.5px)' 
-        : 'radial-gradient(rgba(0, 242, 255, 0.15) 1.2px, transparent 1.2px)',
-      backgroundSize: '30px 30px',
-      overflowX: 'hidden'
+      boxSizing: 'border-box'
     }}>
       
-      {/* Alternador de Tema */}
-      <Box sx={{ position: 'absolute', top: 24, right: 32, zIndex: 10 }}>
+      {/* Alternador de Tema clássico */}
+      <Box sx={{ position: 'absolute', top: { xs: 24, md: 40 }, right: 40, zIndex: 10, display: { xs: 'none', md: 'block' } }}>
         <IconButton onClick={() => toggleColorMode?.()} sx={{ color: 'text.primary' }}>
           {isLight ? <Brightness4Icon /> : <Brightness7Icon />}
         </IconButton>
       </Box>
 
-      <Container maxWidth="md">
-        <Paper 
+      <Container maxWidth="md" disableGutters sx={{ my: { xs: 0, md: 'auto' } }}>
+        
+        {/* CONTAINER DO FORMULÁRIO */}
+        <Box 
           component="form"
           onSubmit={handleSubmit}
-          elevation={0} 
           sx={{ 
-            p: { xs: 4, md: 8 }, 
-            borderRadius: '24px', 
-            border: '1px solid', 
+            p: { xs: 0, sm: 5, md: 8 }, 
+            bgcolor: { xs: 'transparent', sm: 'background.paper' }, 
+            border: { xs: 'none', sm: '1px solid' }, 
             borderColor: isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.05)', 
-            bgcolor: isLight ? '#f5f5f5' : '#14213D',
-            position: 'relative',
-            overflow: 'hidden',
-            boxShadow: isLight ? '0 10px 30px rgba(0,0,0,0.03)' : '0 15px 35px rgba(0,0,0,0.2)'
+            borderRadius: '24px', 
+            width: '100%',
+            boxSizing: 'border-box',
+            boxShadow: { xs: 'none', sm: isLight ? '0 10px 30px rgba(0,0,0,0.03)' : '0 15px 35px rgba(0,0,0,0.2)' }
           }}
         >
-          <Grid container spacing={4}>
+          {/* STACK VERTICAL */}
+          <Stack spacing={3} sx={{ width: '100%' }}>
             
-            {/* Título da Página */}
-            <Grid item xs={12}>
-              <Typography variant="h4" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, color: 'text.primary' }}>
-                Cadastrar Perfil
-              </Typography>
-            </Grid>
+            <Typography variant="h4" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, color: 'text.primary', fontSize: { xs: '1.6rem', sm: '2.125rem' } }}>
+              Cadastrar Perfil
+            </Typography>
 
-            {/* Ícone da Foto Centralizado */}
-            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mt: 1, mb: 1 }}>
+            {/* Avatar Centralizado */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
               <Avatar sx={{ 
-                width: 130, 
-                height: 130, 
+                width: { xs: 110, sm: 130 }, 
+                height: { xs: 110, sm: 130 }, 
                 bgcolor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255, 255, 255, 0.03)', 
                 border: '2px solid', 
                 borderColor: isLight ? 'primary.main' : '#00f2ff',
               }}>
-                <AccountCircleIcon sx={{ fontSize: 115, color: isLight ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.5)' }} />
+                <AccountCircleIcon sx={{ fontSize: { xs: 95, sm: 115 }, color: isLight ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.5)' }} />
               </Avatar>
-            </Grid>
+            </Box>
 
             {/* Nome Completo */}
-            <Grid item xs={12}>
-              <TextField 
-                required 
-                fullWidth 
-                label="Nome Completo *" 
-                name="nome" 
-                value={formData.nome} 
-                onChange={handleInputChange} 
-                InputProps={{ 
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <AccountCircleIcon sx={{ color: isLight ? 'primary.main' : '#00f2ff', fontSize: '1.2rem' }} />
-                    </InputAdornment>
-                  ) 
-                }} 
-                sx={inputStyles} 
-              />
-            </Grid>
+            <TextField 
+              required 
+              fullWidth 
+              label="Nome Completo *" 
+              name="nome" 
+              value={formData.nome} 
+              onChange={handleInputChange} 
+              InputProps={{ 
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <AccountCircleIcon sx={{ color: isLight ? 'primary.main' : '#00f2ff', fontSize: '1.2rem' }} />
+                  </InputAdornment>
+                ) 
+              }} 
+              sx={inputStyles} 
+            />
 
-            {/* Demais campos abaixo do nome */}
-            <Grid item xs={12} md={6}>
+            {/* E-mail e Senha */}
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, width: '100%' }}>
               <TextField 
                 required 
                 fullWidth 
@@ -210,9 +205,7 @@ const CadastrarPerfil = () => {
                 }} 
                 sx={inputStyles} 
               />
-            </Grid>
 
-            <Grid item xs={12} md={6}>
               <TextField 
                 required 
                 fullWidth 
@@ -237,9 +230,10 @@ const CadastrarPerfil = () => {
                 }} 
                 sx={inputStyles} 
               />
-            </Grid>
+            </Box>
 
-            <Grid item xs={12} md={6}>
+            {/* Registro e Perfil */}
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, width: '100%' }}>
               <TextField 
                 required 
                 fullWidth 
@@ -256,9 +250,7 @@ const CadastrarPerfil = () => {
                 }} 
                 sx={inputStyles} 
               />
-            </Grid>
 
-            <Grid item xs={12} md={6}>
               <TextField 
                 select 
                 required
@@ -280,38 +272,51 @@ const CadastrarPerfil = () => {
                 <MenuItem value="ALMOXARIFE" sx={{ fontFamily: 'Poppins, sans-serif' }}>Almoxarife</MenuItem>
                 <MenuItem value="TECNICO" sx={{ fontFamily: 'Poppins, sans-serif' }}>Técnico</MenuItem>
               </TextField>
-            </Grid>
+            </Box>
 
-            {/* Botão com loading */}
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 0}}>
-                <Button 
-                  type="submit"
-                  variant="contained" 
-                  disabled={cadastroLoading}
-                  startIcon={cadastroLoading ? <CircularProgress size={20} color="inherit" /> : <PersonAddIcon />}
-                  sx={{ 
-                    borderRadius: '14px', 
-                    textTransform: 'none', 
-                    fontWeight: 700, 
-                    px: 7, 
-                    py: 1.6,
-                    fontSize: '0.95rem',
-                    fontFamily: 'Poppins, sans-serif', 
-                    bgcolor: isLight ? '#14213D' : '#00f2ff',
-                    color: isLight ? '#ffffff' : '#14213D',
-                    '&:hover': { 
-                      bgcolor: isLight ? '#2b3a55' : '#70f9ff',
-                    }
-                  }}
-                >
-                  {cadastroLoading ? 'Registrando...' : 'Criar Usuário'}
-                </Button>
-              </Box>
-            </Grid>
+            {/* Área de Botões */}
+            <Stack spacing={2} sx={{ pt: 1, width: '100%', alignItems: 'center' }}>
+              <Button 
+                type="submit"
+                variant="contained" 
+                disabled={cadastroLoading}
+                startIcon={cadastroLoading ? <CircularProgress size={20} color="inherit" /> : <PersonAddIcon />}
+                sx={{ 
+                  borderRadius: '14px', 
+                  textTransform: 'none', 
+                  fontWeight: 800, 
+                  width: '100%', 
+                  py: 1.8,
+                  fontSize: '1rem',
+                  fontFamily: 'Poppins, sans-serif', 
+                  bgcolor: isLight ? '#14213D' : '#00f2ff',
+                  color: isLight ? '#ffffff' : '#14213D',
+                  boxShadow: 'none',
+                  '&:hover': { 
+                    bgcolor: isLight ? '#2b3a55' : '#70f9ff',
+                  }
+                }}
+              >
+                {cadastroLoading ? 'Registrando...' : 'Criar Usuário'}
+              </Button>
+              
+              <Button 
+                variant="text"
+                sx={{ 
+                  textTransform: 'none', 
+                  fontFamily: 'Poppins, sans-serif', 
+                  color: 'text.secondary', 
+                  fontWeight: 600,
+                  fontSize: '0.95rem',
+                  '&:hover': { bgcolor: 'transparent', color: 'text.primary' }
+                }}
+              >
+                Cancelar
+              </Button>
+            </Stack>
 
-          </Grid>
-        </Paper>
+          </Stack>
+        </Box>
       </Container>
     </Box>
   );

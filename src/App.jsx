@@ -1,13 +1,33 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react'; // 🌟 Atualizado: Mantida a consistência de imports
+import { useMemo } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'; 
-import BoasVindas from './pages/BoasVindas';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useOutletContext } from 'react-router-dom'; // 🌟 Incluído useOutletContextimport BoasVindas from './pages/BoasVindas';
+import BoasVindas from './pages/BoasVindas'; 
 import Login from './pages/Login';
 import Layout from './components/Layout';
 import DashboardInicio from './pages/DashboardInicio';
 import EmUso from './pages/EmUso';
 import Ferramentas from './pages/Ferramentas';
+import Ocorrencias from './pages/Ocorrencias';
+import CadastrarPerfil from './pages/CadastrarPerfil'; 
+import ListarPerfis from './pages/ListarPerfis';
+import Historico from './pages/Historico';
+import Perfil from './pages/Perfil';
+
+// 🌟 ATUALIZADO: Componente Guardião agora repassa o contexto do Layout adiante
+const RotaProtegida = ({ perfisPermitidos }) => {
+  const perfilUsuario = localStorage.getItem('perfil') || '';
+  const context = useOutletContext(); // 🌟 ADICIONADO: Captura o contexto vindo do Layout.jsx
+  
+  if (!perfisPermitidos.includes(perfilUsuario)) {
+    // Se o perfil digitado na barra de endereços não for ADMIN, chuta de volta para o início do painel
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  // 🌟 ATUALIZADO: Repassa o context para que as páginas internas (CadastrarPerfil, ListarPerfis) consigam lê-lo!
+  return <Outlet context={context} />;
+};
 
 function App() {
   const [mode, setMode] = useState('light');
@@ -15,14 +35,29 @@ function App() {
   const theme = useMemo(() => createTheme({
     palette: { 
       mode,
-      primary: { main: '#1a1a1a' },
+      primary: { main: '#14213D' },
       background: {
-        // Opcional: ajustar o cinza do modo escuro para não ficar 100% preto
-        default: mode === 'light' ? '#FBFBFB' : '#121212',
-        paper: mode === 'light' ? '#ffffff' : '#1e1e1e',
+        default: mode === 'light' ? '#f5f5f5' : '#0A1128', 
+        paper: mode === 'light' ? '#ffffff' : '#14213D', 
+      },
+      text: {
+        primary: mode === 'light' ? '#14213D' : '#f5f5f5',
+        secondary: mode === 'light' ? 'rgba(20, 33, 61, 0.7)' : 'rgba(245, 245, 245, 0.7)',
       }
     },
-    typography: { fontFamily: 'Poppins, sans-serif' }
+
+    components: {
+      MuiCssBaseline: {
+        styleOverrides: `
+          @font-face {
+            font-family: 'Poppins';
+            font-style: normal;
+            display: swap;
+            font-weight: 400;
+          }
+        `,
+      },
+    },
   }), [mode]);
 
   const toggleColorMode = () => {
@@ -31,30 +66,32 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
+      <CssBaseline /> 
       <BrowserRouter>
         <Routes>
-  {/* Rotas Públicas */}
-  <Route path="/" element={<BoasVindas toggleColorMode={toggleColorMode} />} />
-  <Route path="/login" element={<Login toggleColorMode={toggleColorMode} />} />
+          {/* Rotas Raiz */}
+          <Route path="/" element={<BoasVindas toggleColorMode={toggleColorMode} />} />
+          <Route path="/login" element={<Login toggleColorMode={toggleColorMode} />} />
 
-  {/* Rotas da Dashboard (Privadas/Layout) */}
-  <Route path="/dashboard" element={<Layout toggleColorMode={toggleColorMode} />}>
-    {/* Rota padrão (Início) */}
-    <Route index element={<DashboardInicio />} /> 
-    
-    {/* Rota "Em Uso" - Agora com o componente real */}
-    <Route path="em-uso" element={<EmUso />} /> 
-    
-    <Route path="ferramentas" element={<Ferramentas />} />/
-     {/* Outras rotas (Ainda em desenvolvimento) */}
-    <Route path="ocorrencias" element={<div>Página Ocorrências (Em breve...)</div>} />
-    <Route path="perfil" element={<div>Página Perfil (Em breve...)</div>} />
-  </Route>
+          {/* Rotas do Painel Administrativo (Aninhadas dentro de /dashboard) */}
+          <Route path="/dashboard" element={<Layout toggleColorMode={toggleColorMode} />}>
+            <Route index element={<DashboardInicio />} /> 
+            <Route path="em-uso" element={<EmUso />} /> 
+            <Route path="ferramentas" element={<Ferramentas />} />
+            <Route path="ocorrencias" element={<Ocorrencias />} />
+            <Route path="historico" element={<Historico />} />
+            <Route path="perfil/meu" element={<Perfil />} />
 
-  {/* Redirecionamento de segurança */}
-  <Route path="*" element={<Navigate to="/" />} />
-</Routes>
+            {/* 🌟 ADICIONADO: Envelopamento de segurança máxima. Bloqueia na marra o formulário e a listagem de funcionários */}
+            <Route element={<RotaProtegida perfisPermitidos={['ADMIN']} />}>
+              <Route path="perfil/cadastrar" element={<CadastrarPerfil />} />
+              <Route path="perfil/listar" element={<ListarPerfis />} />
+            </Route>
+          </Route>
+
+          {/* Fallback de segurança para rotas inexistentes */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
       </BrowserRouter>
     </ThemeProvider>
   );

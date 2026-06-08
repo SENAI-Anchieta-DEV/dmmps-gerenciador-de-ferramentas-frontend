@@ -27,7 +27,8 @@ const OcorrenciaCard = ({ item, onAcaoStatus }) => {
   const isLight = theme.palette.mode === 'light';
 
   const perfilUsuario = localStorage.getItem('perfil') || '';
-  const ehAlmoxarifeOuAdmin = perfilUsuario === 'ADMIN' || perfilUsuario === 'ALMOXARIFE';
+  // 🌟 CORREÇÃO DE UX E REGRA DE NEGÓCIO: Apenas ALMOXARIFE gerencia o fluxo operacional de ativos
+  const ehAlmoxarife = perfilUsuario === 'ALMOXARIFE';
 
   const getStatusStyle = (statusOcorrencia) => {
     const styles = {
@@ -102,7 +103,8 @@ const OcorrenciaCard = ({ item, onAcaoStatus }) => {
           <Chip label={status.label} size="small" sx={{ fontWeight: 800, fontFamily: 'Poppins', fontSize: '0.65rem', color: status.color, border: `1.5px solid ${status.color}`, bgcolor: 'transparent' }} />
         </Box>
 
-        {ehAlmoxarifeOuAdmin && item.statusOcorrencia === 'EM_MANUTENCAO' && (
+        {/* 🌟 PRIVILÉGIO MÍNIMO ATUALIZADO: Botões restritos exclusivamente ao Almoxarife */}
+        {ehAlmoxarife && item.statusOcorrencia === 'EM_MANUTENCAO' && (
           <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
             <Tooltip title="Resolver Ocorrência (Disponibilizar Ativo)">
               <IconButton 
@@ -199,7 +201,7 @@ const Ocorrencias = () => {
 
   useEffect(() => { carregarOcorrencias(); }, []);
 
-  const handleAtualizarStatusOcorrencia = async () => {
+  const handleOriginalStatusUpdate = async () => {
     if (!ocorrenciaSelecionada) return;
     
     if (proximoStatus === 'DESCARTADA' && !justificativaDescarte.trim()) {
@@ -359,7 +361,7 @@ const Ocorrencias = () => {
         </Box>
       )}
 
-      {/* Título da Página - 🌟 EXCLUSÃO COMPLETA E LIMPA DO BOTÃO OCIOSO */}
+      {/* Título da Página */}
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 4, gap: 2 }}>
         <Typography variant="h4" sx={{ fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5', fontSize: { xs: '1.8rem', sm: '2.125rem' } }}>
           Ocorrências
@@ -429,7 +431,7 @@ const Ocorrencias = () => {
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setDialogAcaoOpen(false)} disabled={statusLoading} sx={{ textTransform: 'none', fontFamily: 'Poppins', fontWeight: 600, color: 'text.secondary' }}>Cancelar</Button>
           <Button 
-            onClick={handleAtualizarStatusOcorrencia} 
+            onClick={handleOriginalStatusUpdate} 
             variant="contained" 
             disabled={statusLoading || (proximoStatus === 'DESCARTADA' && !justificativaDescarte.trim())} 
             sx={{ 

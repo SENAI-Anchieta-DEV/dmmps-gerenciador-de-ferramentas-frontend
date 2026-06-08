@@ -59,7 +59,7 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, on
   const codigo = ferramenta.codigoPatrimonio || '#ID-0000';
   const statusAtivo = ferramenta.status || 'DISPONIVEL';
   
-  // 🌟 DADOS VIVOS DA API: Capturados para preencher o corpo ocioso do card
+  // DADOS VIVOS DA API
   const localizacao = ferramenta.gavetaLocalizacao || 'Almoxarifado Central';
   const marca = ferramenta.fabricante || 'Não Especificada';
 
@@ -79,7 +79,7 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, on
         display: 'flex',
         flexDirection: 'column',
         gap: 2,
-        height: '210px', // 🌟 ALINHADO: Ajustado para 210px para bater milimetricamente com o tamanho do card "Em Uso"
+        height: '210px', // Mantido 210px para simetria perfeita
         position: 'relative',
         transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease',
         '&:hover': { 
@@ -96,7 +96,7 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, on
           <ConstructionIcon />
         </Avatar>
 
-        <Box sx={{ flexGrow: 1, ml: 2, pr: podeModificar ? 5 : 2, minWidth: 0 }}>
+        <Box sx={{ flexGrow: 1, ml: 2, pr: 2, minWidth: 0 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: 'text.primary', fontFamily: 'Poppins', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {nome}
           </Typography>
@@ -105,29 +105,13 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, on
           </Typography>
         </Box>
 
-        {/* TOPO DIREITO */}
+        {/* 🌟 TOPO DIREITO UNIFICADO: Exibe apenas o ponto de status geométrico e brilhante, eliminando a lixeira flutuante */}
         <Box sx={{ position: 'absolute', top: 15, right: 15, display: 'flex', gap: 1, flexShrink: 0 }}>
-          {podeModificar ? (
-            <IconButton 
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeletar(ferramenta);
-              }}
-              sx={{ 
-                color: theme.palette.error.main,
-                transition: 'transform 0.2s',
-                '&:hover': { transform: 'scale(1.15)', bgcolor: 'rgba(211, 47, 47, 0.1)' }
-              }}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          ) : (
-            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: corStatus, boxShadow: `0 0 8px ${corStatus}`, border: '2px solid', borderColor: 'background.paper', mt: 1, mr: 0.5 }} />
-          )}
+          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: corStatus, boxShadow: `0 0 8px ${corStatus}`, border: '2px solid', borderColor: 'background.paper', mt: 1, mr: 0.5 }} />
         </Box>
       </Box>
 
-      {/* 🌟 UX ENHANCEMENT: Corpo preenchido de forma viva com os dados do Ativo, matando o vazio do card */}
+      {/* Corpo preenchido com dados vivos do ativo */}
       <Box>
         <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontFamily: 'Poppins', fontSize: '0.8rem' }}>
           Localização: <b style={{ color: isLight ? '#14213D' : '#f5f5f5' }}>{localizacao}</b>
@@ -137,7 +121,7 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, on
         </Typography>
       </Box>
 
-      {/* Rodapé de dupla ação textual */}
+      {/* 🌟 UX REORGANIZADO: Rodapé com ações textuais e literais casando perfeitamente com a Opção 2 */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto', gap: 1.5 }}>
         <Button 
           variant="text" 
@@ -148,6 +132,7 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, on
           Mais detalhes
         </Button>
 
+        {/* Visão do Técnico: Requisitar ferramenta */}
         {!podeModificar && podeRequisitar && isDisponivel && (
           <Button
             variant="contained"
@@ -176,6 +161,30 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, on
             }}
           >
             Requisitar
+          </Button>
+        )}
+
+        {/* 🌟 Visão do Admin/Almoxarife: Botão Excluir textual, explícito e seguro no rodapé */}
+        {podeModificar && (
+          <Button
+            variant="text"
+            color="error"
+            size="small"
+            startIcon={<DeleteIcon sx={{ fontSize: '0.95rem !important' }} />}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeletar(ferramenta);
+            }}
+            sx={{
+              textTransform: 'none',
+              fontSize: '0.75rem',
+              fontFamily: 'Poppins',
+              fontWeight: 700,
+              px: 1.5,
+              borderRadius: '12px'
+            }}
+          >
+            Excluir Ativo
           </Button>
         )}
       </Box>

@@ -7,7 +7,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
 import AssignmentReturnedIcon from '@mui/icons-material/AssignmentReturned'; 
-import SearchIcon from '@mui/icons-material/Search'; // 🌟 ADICIONADO: Ícone para a barra de pesquisa mobile interna
+import SearchIcon from '@mui/icons-material/Search'; 
 
 import API_BASE_URL from '../apiConfig';
 
@@ -17,7 +17,7 @@ const DADOS_MOCK_TESTE = [
   { id: 'mock-3', nomeFerramenta: 'Multímetro Digital Fluke', codigoPatrimonio: '#ID-2343', dataRetirada: '2026-05-18T12:15:00', origem: 'Gaveta: 04 / B', nomeUsuario: 'Ana Oliveira' },
 ];
 
-// --- COMPONENTE DO CARD ATUALIZADO COM BOTÃO DE DEVOLUÇÃO ---
+// --- COMPONENTE DO CARD ATUALIZADO COM UX DE ALTO CONTRASTE ---
 const ToolCardEmUso = ({ ferramenta, onVerDetalhes, onAcionarDevolucao }) => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
@@ -69,7 +69,7 @@ const ToolCardEmUso = ({ ferramenta, onVerDetalhes, onAcionarDevolucao }) => {
           <ConstructionIcon />
         </Avatar>
 
-        <Box sx={{ flexGrow: 1, ml: 2, pr: 5 }}>
+        <Box sx={{ flexGrow: 1, ml: 2, pr: podeDevolver ? 2 : 0 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: 'text.primary', fontFamily: 'Poppins', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {nome}
           </Typography>
@@ -78,20 +78,9 @@ const ToolCardEmUso = ({ ferramenta, onVerDetalhes, onAcionarDevolucao }) => {
           </Typography>
         </Box>
 
-        {podeDevolver && (
-          <Box sx={{ position: 'absolute', top: 15, right: 15 }}>
-            <Tooltip title="Devolver Ferramenta">
-              <IconButton 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAcionarDevolucao(ferramenta);
-                }}
-                sx={{ color: '#FFB347', '&:hover': { transform: 'scale(1.15)', bgcolor: 'action.hover' } }}
-              >
-                <AssignmentReturnedIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
+        {/* Indicador visual de status que substituiu o ícone camuflado do topo */}
+        {!podeDevolver && (
+          <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: '#FFB347', boxShadow: '0 0 10px #FFB347', border: '2px solid', borderColor: 'background.paper' }} />
         )}
       </Box>
 
@@ -104,16 +93,47 @@ const ToolCardEmUso = ({ ferramenta, onVerDetalhes, onAcionarDevolucao }) => {
         </Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto' }}>
+      {/* 🌟 UX ENHANCEMENT: Botões rearranjados no rodapé para dar destaque total e imediato à Devolução */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto', gap: 1.5 }}>
         <Button 
-          variant="outlined" 
+          variant="text" 
           size="small"
           onClick={() => onVerDetalhes(ferramenta)}
-          sx={{ borderRadius: '20px', textTransform: 'none', fontSize: '0.75rem', borderColor: 'divider', color: 'text.primary', fontFamily: 'Poppins', px: 2.5, fontWeight: 600, '&:hover': { bgcolor: 'action.hover', borderColor: 'text.primary' } }}
+          sx={{ borderRadius: '12px', textTransform: 'none', fontSize: '0.75rem', color: 'text.secondary', fontFamily: 'Poppins', fontWeight: 600, '&:hover': { color: 'text.primary', bgcolor: 'transparent' } }}
         >
-          Ver mais detalhes
+          Mais detalhes
         </Button>
-        <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: '#FFB347', boxShadow: '0 0 10px #FFB347', border: '2px solid', borderColor: 'background.paper' }} />
+
+        {podeDevolver && (
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<AssignmentReturnedIcon sx={{ fontSize: '0.95rem !important' }} />}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAcionarDevolucao(ferramenta);
+            }}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontSize: '0.75rem',
+              fontFamily: 'Poppins',
+              fontWeight: 700,
+              bgcolor: '#FFB347',
+              color: '#14213D',
+              px: 2,
+              py: 0.8,
+              boxShadow: 'none',
+              '&:hover': {
+                bgcolor: '#e09a36',
+                boxShadow: 'none',
+                transform: 'scale(1.02)'
+              }
+            }}
+          >
+            Devolver
+          </Button>
+        )}
       </Box>
     </Paper>
   );
@@ -123,11 +143,8 @@ const ToolCardEmUso = ({ ferramenta, onVerDetalhes, onAcionarDevolucao }) => {
 const EmUso = () => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
-  
-  // Captura o corte md da tela para saber se o menu lateral sumiu
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
-  // 🌟 CONTEXTO GLOBAL + BUSCA INTERNA REATIVADA
   const { searchTerm } = useOutletContext(); 
   const [buscaInterna, setBuscaInterna] = useState('');
 
@@ -190,7 +207,7 @@ const EmUso = () => {
     } catch (err) {
       setFerramentas(DADOS_MOCK_TESTE);
       setUsandoMock(true);
-    } finally {
+    } finally{
       clearTimeout(timeoutId);
       setLoading(false);
     }
@@ -236,7 +253,6 @@ const EmUso = () => {
     }
   };
 
-  // 🌟 CHAVEAMENTO DE FILTRO INTELIGENTE: Consome o termo global no desktop e o termo local no mobile
   const ferramentasFiltradas = ferramentas.filter((f) => {
     const termo = (isMobile ? buscaInterna : searchTerm)?.toLowerCase() || '';
     const nome = (f.ferramenta?.nome || f.nomeFerramenta || '').toLowerCase();
@@ -271,21 +287,8 @@ const EmUso = () => {
         Em Uso
       </Typography>
 
-      {/* 🌟 BARRA DE BUSCA NATIVA MOBILE: Surge dinamicamente apenas em telas de celular/tablet */}
       {isMobile && (
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            border: '1px solid', 
-            borderColor: 'divider', 
-            borderRadius: '24px', 
-            px: 2, 
-            mb: 3,
-            bgcolor: 'background.paper', 
-            width: '100%' 
-          }}
-        >
+        <Box sx={{ display: 'flex', alignItems: 'center', border: '1px solid', borderColor: 'divider', borderRadius: '24px', px: 2, mb: 3, bgcolor: 'background.paper', width: '100%' }}>
           <InputBase 
             placeholder="Buscar ferramenta em uso..." 
             value={buscaInterna}

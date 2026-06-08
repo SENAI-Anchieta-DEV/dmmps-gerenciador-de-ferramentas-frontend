@@ -32,11 +32,10 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
-import SearchIcon from '@mui/icons-material/Search'; // 🌟 ADICIONADO: Ícone para a barra de pesquisa mobile interna
+import SearchIcon from '@mui/icons-material/Search'; 
 
-// NOVOS ÍCONES PARA O FLUXO DE EMPRÉSTIMO
+// ÍCONES PARA O FLUXO DE EMPRÉSTIMO
 import PlayForWorkIcon from '@mui/icons-material/PlayForWork'; 
-import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn'; 
 
 import API_BASE_URL from '../apiConfig';
 
@@ -48,18 +47,24 @@ const getStatusColor = (status) => {
   return '#85FF80'; 
 };
 
-// --- COMPONENTE DO CARD DE LISTAGEM ---
+// --- COMPONENTE DO CARD DE LISTAGEM ATUALIZADO E PREENCHIDO ---
 const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, onAcaoEmprestimo }) => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
 
+  const perfilUsuario = localStorage.getItem('perfil') || '';
+  const podeRequisitar = perfilUsuario === 'TECNICO';
+
   const nome = ferramenta.nome || 'Ferramenta Sem Nome';
   const codigo = ferramenta.codigoPatrimonio || '#ID-0000';
   const statusAtivo = ferramenta.status || 'DISPONIVEL';
+  
+  // 🌟 DADOS VIVOS DA API: Capturados para preencher o corpo ocioso do card
+  const localizacao = ferramenta.gavetaLocalizacao || 'Almoxarifado Central';
+  const marca = ferramenta.fabricante || 'Não Especificada';
 
   const corStatus = getStatusColor(statusAtivo);
   const isDisponivel = statusAtivo.toUpperCase() === 'DISPONIVEL';
-  const isEmUso = statusAtivo.toUpperCase() === 'EM_USO';
 
   return (
     <Paper 
@@ -74,7 +79,7 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, on
         display: 'flex',
         flexDirection: 'column',
         gap: 2,
-        height: '180px',
+        height: '210px', // 🌟 ALINHADO: Ajustado para 210px para bater milimetricamente com o tamanho do card "Em Uso"
         position: 'relative',
         transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease',
         '&:hover': { 
@@ -91,8 +96,7 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, on
           <ConstructionIcon />
         </Avatar>
 
-        {/* 🌟 BLINDAGEM ANTI-QUEBRA: minWidth 0 e ellipsis protegem o layout de estourar horizontamente */}
-        <Box sx={{ flexGrow: 1, ml: 2, pr: 7, minWidth: 0 }}>
+        <Box sx={{ flexGrow: 1, ml: 2, pr: podeModificar ? 5 : 2, minWidth: 0 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: 'text.primary', fontFamily: 'Poppins', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {nome}
           </Typography>
@@ -101,27 +105,9 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, on
           </Typography>
         </Box>
 
-        {/* 🛠️ ÁREA DE BOTÕES DE AÇÃO CONTEXTUAIS */}
+        {/* TOPO DIREITO */}
         <Box sx={{ position: 'absolute', top: 15, right: 15, display: 'flex', gap: 1, flexShrink: 0 }}>
-          {!podeModificar && (isDisponivel || isEmUso) && (
-            <Tooltip title={isDisponivel ? "Solicitar Empréstimo" : "Devolver Ferramenta"}>
-              <IconButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAcaoEmprestimo(ferramenta, isDisponivel ? 'SOLICITAR' : 'DEVOLVER');
-                }}
-                sx={{
-                  color: isDisponivel ? (isLight ? 'primary.main' : '#00f2ff') : '#FFB347',
-                  transition: 'transform 0.2s',
-                  '&:hover': { transform: 'scale(1.15)', bgcolor: 'action.hover' }
-                }}
-              >
-                {isDisponivel ? <PlayForWorkIcon /> : <AssignmentTurnedInIcon />}
-              </IconButton>
-            </Tooltip>
-          )}
-
-          {podeModificar && (
+          {podeModificar ? (
             <IconButton 
               onClick={(e) => {
                 e.stopPropagation();
@@ -135,19 +121,63 @@ const ToolCardLista = ({ ferramenta, onVerDetalhes, onDeletar, podeModificar, on
             >
               <DeleteIcon fontSize="small" />
             </IconButton>
+          ) : (
+            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: corStatus, boxShadow: `0 0 8px ${corStatus}`, border: '2px solid', borderColor: 'background.paper', mt: 1, mr: 0.5 }} />
           )}
         </Box>
       </Box>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 'auto' }}>
+      {/* 🌟 UX ENHANCEMENT: Corpo preenchido de forma viva com os dados do Ativo, matando o vazio do card */}
+      <Box>
+        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontFamily: 'Poppins', fontSize: '0.8rem' }}>
+          Localização: <b style={{ color: isLight ? '#14213D' : '#f5f5f5' }}>{localizacao}</b>
+        </Typography>
+        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontFamily: 'Poppins', fontSize: '0.8rem', mt: 0.5 }}>
+          Fabricante: <b style={{ color: isLight ? '#14213D' : '#f5f5f5' }}>{marca}</b>
+        </Typography>
+      </Box>
+
+      {/* Rodapé de dupla ação textual */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto', gap: 1.5 }}>
         <Button 
-          variant="outlined" 
+          variant="text" 
           size="small"
           onClick={() => onVerDetalhes(ferramenta)}
-          sx={{ borderRadius: '20px', textTransform: 'none', fontSize: '0.75rem', borderColor: 'divider', color: 'text.primary', fontFamily: 'Poppins', px: 2.5, fontWeight: 600, '&:hover': { bgcolor: 'action.hover', borderColor: 'text.primary' } }}
+          sx={{ borderRadius: '12px', textTransform: 'none', fontSize: '0.75rem', color: 'text.secondary', fontFamily: 'Poppins', fontWeight: 600, '&:hover': { color: 'text.primary', bgcolor: 'transparent' } }}
         >
-          Ver mais detalhes
+          Mais detalhes
         </Button>
+
+        {!podeModificar && podeRequisitar && isDisponivel && (
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<PlayForWorkIcon sx={{ fontSize: '1rem !important' }} />}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAcaoEmprestimo(ferramenta, 'SOLICITAR');
+            }}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontSize: '0.75rem',
+              fontFamily: 'Poppins',
+              fontWeight: 700,
+              bgcolor: isLight ? '#14213D' : '#00f2ff',
+              color: isLight ? '#ffffff' : '#14213D',
+              px: 2,
+              py: 0.8,
+              boxShadow: 'none',
+              '&:hover': {
+                bgcolor: isLight ? '#2b3a55' : '#70f9ff',
+                boxShadow: 'none',
+                transform: 'scale(1.02)'
+              }
+            }}
+          >
+            Requisitar
+          </Button>
+        )}
       </Box>
     </Paper>
   );
@@ -264,7 +294,7 @@ const Ferramentas = () => {
 
     try {
       const response = await fetch(urlFinal, {
-        method: tipoAcaoEmprestimo === 'SOLICITAR' ? 'POST' : 'PATCH',
+        method: tipoAcaoEmprestimo === 'SOLICITAR' ? 'POST' : 'POST', 
         headers: { 
           'Authorization': `Bearer ${token}`, 
           'Content-Type': 'application/json' 
@@ -330,8 +360,8 @@ const Ferramentas = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/ferramentas`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(novaFerramenta)
+        body: JSON.stringify(novaFerramenta),
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }
       });
 
       if (response.ok) {
@@ -370,7 +400,7 @@ const Ferramentas = () => {
     return correspondeBusca && estaDisponivel;
   });
 
-if (exibirCadastro) {
+  if (exibirCadastro) {
     return (
       <Box sx={{ width: '100%', pb: 5, px: { xs: 1, sm: 3, md: 0 } }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 4, px: { xs: 1, sm: 0 } }}>
@@ -385,13 +415,12 @@ if (exibirCadastro) {
         {cadastroErro && <Alert severity="error" sx={{ mb: 3, borderRadius: '14px', mx: { xs: 1, sm: 0 } }}>{cadastroErro}</Alert>}
         {cadastroSucesso && <Alert severity="success" sx={{ mb: 3, borderRadius: '14px', fontWeight: 600, mx: { xs: 1, sm: 0 } }}>Ferramenta cadastrada!</Alert>}
 
-        {/* 🌟 CONTEINER RECALIBRADO: Elimina o sufoco visual adaptando o fundo dinamicamente */}
         <Box 
           component="form" 
           onSubmit={handleCadastrarFerramenta} 
           sx={{ 
-            p: { xs: 0, sm: 4 },           // Remove o preenchimento rígido no mobile para ganhar área útil
-            bgcolor: { xs: 'transparent', sm: 'background.paper' }, // Remove o bloco pesado no celular
+            p: { xs: 0, sm: 4 }, 
+            bgcolor: { xs: 'transparent', sm: 'background.paper' }, 
             border: { xs: 'none', sm: '1px solid' },
             borderColor: isLight ? 'divider' : 'rgba(255, 255, 255, 0.05)', 
             borderRadius: '24px',
@@ -400,12 +429,9 @@ if (exibirCadastro) {
             boxSizing: 'border-box'
           }}
         >
-          {/* 🌟 O SEGREDO: Stack força 100% de ocupação horizontal em cada linha com espaçamento uniforme */}
           <Stack spacing={3} sx={{ width: '100%', px: { xs: 1, sm: 0 }, boxSizing: 'border-box' }}>
-            
             <TextField required fullWidth label="Nome da Ferramenta" variant="outlined" value={formNome} onChange={(e) => setFormNome(e.target.value)} sx={inputStyles} />
             
-            {/* No mobile vira coluna de 100% de largura; no desktop volta para a linha com divisões normais */}
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3, width: '100%' }}>
               <TextField required fullWidth label="Código do Patrimônio" variant="outlined" value={formPatrimonio} onChange={(e) => setFormPatrimonio(e.target.value)} sx={patrimonioInputStyles} />
               <TextField required fullWidth label="Fabricante / Marca" variant="outlined" value={formFabricante} onChange={(e) => setFormFabricante(e.target.value)} sx={inputStyles} />
@@ -414,7 +440,6 @@ if (exibirCadastro) {
 
             <TextField fullWidth multiline rows={4} label="Descrição / Especificações Técnicas" variant="outlined" value={formDescricao} onChange={(e) => setFormDescricao(e.target.value)} sx={inputStyles} />
             
-            {/* Botões de ação com comportamento responsivo premium */}
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column-reverse', sm: 'row' }, justifyContent: 'flex-end', gap: 2, mt: 1, width: '100%' }}>
               <Button variant="text" onClick={() => setExibirCadastro(false)} sx={{ borderRadius: '12px', textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, color: 'text.secondary', px: 4, py: { xs: 1.5, sm: 0 }, width: { xs: '100%', sm: 'auto' } }}>
                 Cancelar
@@ -423,7 +448,6 @@ if (exibirCadastro) {
                 {cadastroLoading ? <CircularProgress size={24} color="inherit" /> : 'Registrar Ativo'}
               </Button>
             </Box>
-
           </Stack>
         </Box>
       </Box>
@@ -443,7 +467,6 @@ if (exibirCadastro) {
         )}
       </Box>
 
-      {/* 🌟 BARRA DE BUSCA NATIVA MOBILE: Ativada de forma reativa para as telas menores */}
       {isMobile && (
         <Box 
           sx={{ 
@@ -489,7 +512,7 @@ if (exibirCadastro) {
 
       {ferramentasFiltradas.length === 0 && !loading && !erro && (
         <Typography variant="body1" sx={{ mt: 6, textAlign: 'center', color: 'text.secondary', fontFamily: 'Poppins' }}>
-          {termo ? 'Nenhuma ferramenta corresponde à sua busca.' : 'Nenhuma ferramenta disponível no estoque no momento.'}
+          {termo ? 'Nenhum ativo corresponde à sua busca.' : 'Nenhum ativo disponível no estoque no momento.'}
         </Typography>
       )}
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'; 
-import { Box, Drawer, Typography, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Avatar, Divider, InputBase, Badge, IconButton, Chip, useTheme, useMediaQuery, AppBar, Toolbar, Collapse } from '@mui/material';
+import { Box, Drawer, Typography, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Avatar, Divider, InputBase, IconButton, Chip, useTheme, useMediaQuery, AppBar, Toolbar, Collapse } from '@mui/material';
 import { Stack } from '@mui/material'; 
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 
@@ -10,7 +10,6 @@ import WarningIcon from '@mui/icons-material/Warning';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'; 
 import LogoutIcon from '@mui/icons-material/Logout'; 
 import SearchIcon from '@mui/icons-material/Search'; 
-import NotificationsIcon from '@mui/icons-material/Notifications'; 
 import MenuOpenIcon from '@mui/icons-material/MenuOpen'; 
 import MenuIcon from '@mui/icons-material/Menu'; 
 import CloseIcon from '@mui/icons-material/Close'; 
@@ -27,7 +26,6 @@ const Layout = ({ toggleColorMode }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const location = useLocation(); 
-  const [notificacoes] = useState(3); 
   const [searchTerm, setSearchTerm] = useState(''); 
   const isLight = theme.palette.mode === 'light';
 
@@ -109,7 +107,7 @@ const Layout = ({ toggleColorMode }) => {
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', flexDirection: isMobile ? 'column' : 'row', bgcolor: 'background.default' }}>
       
-      {/* 📱 VERSÃO MOBILE: Ajustada para uma presença mais imponente, gordinha e confortável de usar */}
+      {/* 📱 VERSÃO MOBILE: Ajustada e confortável de usar */}
       {isMobile ? (
         <AppBar position="fixed" elevation={0} sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', color: 'text.primary', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
           <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', px: 3, minHeight: { xs: 80, sm: 80 } }}>
@@ -126,11 +124,8 @@ const Layout = ({ toggleColorMode }) => {
               </Typography>
             </Box>
 
-            {/* Ícones de Notificação e Tema fixados perfeitamente juntos na extrema direita */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Badge badgeContent={notificacoes} color="error" overlap="circular">
-                <IconButton color="inherit" sx={{ bgcolor: 'action.hover', borderRadius: '12px', p: 1.2 }}><NotificationsIcon sx={{ fontSize: '1.5rem' }} /></IconButton>
-              </Badge>
+            {/* 🌟 UX MOBILE REFINADO: Ícone de Notificações deletado; Mantido apenas o botão de tema flutuante limpo */}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton 
                 onClick={toggleColorMode} 
                 sx={{ color: 'text.primary', bgcolor: 'action.hover', borderRadius: '12px', p: 1.2 }}
@@ -140,7 +135,7 @@ const Layout = ({ toggleColorMode }) => {
             </Box>
           </Toolbar>
 
-          {/* Painel Dropdown Suave (Sanfona) que desce perfeitamente sincronizado dos 80px */}
+          {/* Painel Dropdown Suave (Sanfona) */}
           <Collapse in={menuExpanded} timeout="auto" unmountOnExit>
             <Box sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', px: 3, pb: 2, maxHeight: 'calc(100vh - 80px)', overflowY: 'auto' }}>
               <List>
@@ -176,10 +171,10 @@ const Layout = ({ toggleColorMode }) => {
           </Collapse>
         </AppBar>
       ) : (
-        /* 💻 VERSÃO DESKTOP: Mantém a Sidebar clássica intacta e estilosa */
+        /* 💻 VERSÃO DESKTOP: Sidebar clássica intacta */
         <Drawer variant="permanent" sx={{ width: drawerWidth, '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box', bgcolor: 'background.paper', borderRight: '1px solid', borderColor: 'divider' } }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            {/* Logo Preservada com cruzamentos geométricos */}
+            {/* Logo Preservada */}
             <Box sx={{ height: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid', borderColor: 'divider', m: 3, borderRadius: '12px', position: 'relative', flexShrink: 0 }}>
               <Box sx={{ position: 'absolute', width: '100%', height: '1px', bgcolor: 'divider', transform: 'rotate(27deg)' }} />
               <Box sx={{ position: 'absolute', width: '100%', height: '1px', bgcolor: 'divider', transform: 'rotate(-27deg)' }} />
@@ -240,7 +235,7 @@ const Layout = ({ toggleColorMode }) => {
           backgroundSize: '40px 40px, 40px 40px, 40px 40px',
         }}
       >
-        {/* 🌟 REORGANIZAÇÃO: Cabeçalho limpo sem os chips estáticos redundantes */}
+        {/* Cabeçalho superior Desktop */}
         {!isCleanPage && !isMobile && (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mb: 3, width: '100%', pr: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -256,10 +251,8 @@ const Layout = ({ toggleColorMode }) => {
                 </Box>
               )}
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Badge badgeContent={notificacoes} color="error" overlap="circular">
-                  <IconButton color="inherit"><NotificationsIcon sx={{ fontSize: '1.6rem' }} /></IconButton>
-                </Badge>
+              {/* 🌟 UX DESKTOP REFINADO: Removido por completo o sino de notificações ocioso */}
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <IconButton onClick={toggleColorMode} sx={{ color: 'text.primary', bgcolor: 'action.hover', '&:hover': { bgcolor: 'action.selected' } }}>
                   {theme.palette.mode === 'dark' ? <Brightness7Icon sx={{ fontSize: '1.5rem' }} /> : <Brightness4Icon sx={{ fontSize: '1.5rem' }} />}
                 </IconButton>

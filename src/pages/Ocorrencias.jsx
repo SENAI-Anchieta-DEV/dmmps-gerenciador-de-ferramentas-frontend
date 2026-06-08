@@ -2,17 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { 
   Box, Typography, Paper, Button, TextField, InputAdornment, 
-  IconButton, Chip, Avatar, useTheme, CircularProgress, Stack, Grid, Badge, Alert,
+  IconButton, Chip, Avatar, useTheme, CircularProgress, Stack, Grid, Alert,
   Dialog, DialogTitle, DialogContent, DialogActions, Tooltip, useMediaQuery
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import AddIcon from '@mui/icons-material/Add';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'; 
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'; 
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import API_BASE_URL from '../apiConfig';
@@ -23,7 +21,7 @@ const mockOcorrencias = [
   { id: 'mock-3', dataAbertura: '2026-04-18T11:00:00', titulo: 'Falha Elétrica', nomeFerramenta: 'Serra Tico-Tico Dewalt', nomeUsuario: 'Carlos Lima', descricao: 'Motor apresentando superaquecimento após 10 min.', statusOcorrencia: 'DESCARTADA' },
 ];
 
-// --- COMPONENTE DO CARD ATUALIZADO ---
+// --- COMPONENTE DO CARD ---
 const OcorrenciaCard = ({ item, onAcaoStatus }) => {
   const theme = useTheme();
   const isLight = theme.palette.mode === 'light';
@@ -340,18 +338,12 @@ const Ocorrencias = () => {
   }
 
   return (
-    /* 🌟 FIX COMPLETO: Força o respiro lateral reativo e confortável em ambas as configurações (Desktop e Mobile) */
     <Box sx={{ width: '100%', pb: 5, p: { xs: 2.5, sm: 3, md: 4 }, boxSizing: 'border-box' }}>
       
       {/* Barra de ferramentas Desktop alinhada */}
       {!isMobile && (
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mb: 3, width: '100%' }}>
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <Badge badgeContent={3} color="error" overlap="circular">
-              <IconButton color="inherit" sx={{ p: 1 }}>
-                <NotificationsIcon sx={{ fontSize: '1.5rem', color: 'text.primary' }} />
-              </IconButton>
-            </Badge>
             <IconButton 
               onClick={toggleColorMode} 
               sx={{ 
@@ -367,14 +359,11 @@ const Ocorrencias = () => {
         </Box>
       )}
 
-      {/* Título da Página */}
+      {/* Título da Página - 🌟 EXCLUSÃO COMPLETA E LIMPA DO BOTÃO OCIOSO */}
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 4, gap: 2 }}>
         <Typography variant="h4" sx={{ fontFamily: 'Poppins', fontWeight: 800, color: isLight ? '#14213D' : '#f5f5f5', fontSize: { xs: '1.8rem', sm: '2.125rem' } }}>
           Ocorrências
         </Typography>
-        {!ehAlmoxarifeOuAdmin && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setExibirCadastro(true)} sx={{ borderRadius: '16px', fontFamily: 'Poppins', fontWeight: 700, textTransform: 'none', bgcolor: isLight ? '#14213D' : '#00f2ff', color: isLight ? '#fff' : '#14213D', px: 3, py: 1, width: { xs: '100%', sm: 'auto' } }}>Registrar Ocorrência</Button>
-        )}
       </Box>
 
       {/* Barra de Pesquisa */}

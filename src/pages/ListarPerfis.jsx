@@ -27,7 +27,8 @@ import {
   TextField,
   InputAdornment,
   Container,
-  useMediaQuery
+  useMediaQuery,
+  Tooltip
 } from '@mui/material';
 
 // Ícones integrados com a identidade visual da ToolHub
@@ -35,7 +36,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import EmailIcon from '@mui/icons-material/Email';
 import BadgeIcon from '@mui/icons-material/Badge';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import DeleteIcon from '@mui/icons-material/Delete';
+import PersonOffIcon from '@mui/icons-material/PersonOff'; 
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import SearchIcon from '@mui/icons-material/Search';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
@@ -156,7 +157,6 @@ const ListarPerfis = () => {
   };
 
   return (
-    /* 🌟 SOLUÇÃO DO ESCANHOAMENTO LATERAL: Ajustado para px: { xs: 2.5, md: 4 } criando o recuo perfeito contra as bordas */
     <Box sx={{ 
       width: '100%', 
       minHeight: '100vh', 
@@ -180,7 +180,7 @@ const ListarPerfis = () => {
       
       <Container maxWidth="xl" disableGutters>
         
-        {/* Título Alinhado com o recuo da página */}
+        {/* Título Alinhado */}
         <Typography variant="h4" sx={{ fontFamily: 'Poppins', fontWeight: 900, mb: 4, color: 'text.primary', letterSpacing: '-1px', fontSize: { xs: '1.8rem', sm: '2.125rem' } }}>
           Gerenciar Perfis
         </Typography>
@@ -276,10 +276,18 @@ const ListarPerfis = () => {
                       <Button variant="outlined" size="small" onClick={() => { setUserSelecionado(user); setModalOpen(true); }} sx={{ textTransform: 'none', fontFamily: 'Poppins', fontWeight: 600, borderRadius: '20px', fontSize: '0.75rem', borderColor: 'divider', color: 'text.primary' }}>
                         Ver detalhes
                       </Button>
+                      
                       {isAdmin() && isUserAtivo && (
-                        <IconButton onClick={() => { setUserParaDeletar(user); setConfirmarDeleteOpen(true); }} sx={{ color: '#FF4747', border: '1px solid rgba(255,71,71,0.2)', p: 0.8, borderRadius: '12px' }}>
-                          <DeleteIcon sx={{ fontSize: '1.1rem' }} />
-                        </IconButton>
+                        <Button 
+                          variant="text" 
+                          color="error" 
+                          size="small" 
+                          startIcon={<PersonOffIcon sx={{ fontSize: '1rem' }} />}
+                          onClick={() => { setUserParaDeletar(user); setConfirmarDeleteOpen(true); }}
+                          sx={{ textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, fontSize: '0.75rem' }}
+                        >
+                          Inativar
+                        </Button>
                       )}
                     </Box>
                   </Paper>
@@ -287,7 +295,7 @@ const ListarPerfis = () => {
               })}
             </Stack>
           ) : (
-            /* 💻 VERSÃO DESKTOP CORRIGIDA CONTRA VAZAMENTOS */
+            /* 💻 VERSÃO DESKTOP */
             <TableContainer 
               component={Paper} 
               elevation={0}
@@ -329,6 +337,7 @@ const ListarPerfis = () => {
                         }}
                       >
                         <TableCell sx={cellBodyStyle}>
+                          {/* 🌟 CORRIGIDO: Removido o caractere "=" extra que quebrava o token do JSX */}
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                             <Avatar sx={{ 
                               width: 40, height: 40, 
@@ -385,12 +394,14 @@ const ListarPerfis = () => {
                           </Button>
                           
                           {isAdmin() && isUserAtivo && (
-                            <IconButton 
-                              onClick={() => { setUserParaDeletar(user); setConfirmarDeleteOpen(true); }}
-                              sx={{ color: '#FF4747', '&:hover': { bgcolor: 'rgba(255,71,71,0.1)' } }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
+                            <Tooltip title="Inativar Funcionário" arrow placement="top">
+                              <IconButton 
+                                onClick={() => { setUserParaDeletar(user); setConfirmarDeleteOpen(true); }}
+                                sx={{ color: '#FF4747', '&:hover': { bgcolor: 'rgba(255,71,71,0.1)' } }}
+                              >
+                                <PersonOffIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
                           )}
                         </TableCell>
                       </TableRow>
@@ -465,7 +476,7 @@ const ListarPerfis = () => {
               </Grid>
             </Stack>
           )}
-        </DialogContent>/*556*/
+        </DialogContent>
         <DialogActions sx={{ px: 3, pt: 1, pb: 2 }}>
           <Button onClick={() => setModalOpen(false)} sx={{ textTransform: 'none', fontFamily: 'Poppins', fontWeight: 700, color: 'text.primary', borderRadius: '12px' }}>Fechar Ficha</Button>
         </DialogActions>

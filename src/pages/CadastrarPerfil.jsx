@@ -322,4 +322,4 @@ const CadastrarPerfil = () => {
   );
 };
 
-export default CadastrarPerfil;/*556*/
+export default CadastrarPerfil;

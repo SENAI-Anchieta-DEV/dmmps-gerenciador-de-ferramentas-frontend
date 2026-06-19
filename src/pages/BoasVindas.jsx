@@ -79,22 +79,31 @@ export default function BoasVindas({ toggleColorMode }) {
             Gerenciamento inteligente para ferramentas profissionais.
           </Typography>
 
-          {/* Vídeo/Pitch Container */}
-          <Paper elevation={20} sx={{ 
-            width: '100%', 
-            aspectRatio: '16/9', 
-            borderRadius: '24px', 
-            bgcolor: 'rgba(255,255,255,0.1)', 
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <Typography variant="body1" color="inherit" sx={{ opacity: 0.7 }}>
-              Espaço reservado para o vídeo/pitch do projeto
-            </Typography>
-          </Paper>
+          <Paper
+  elevation={20}
+  sx={{
+    width: '100%',
+    aspectRatio: '16/9',
+    borderRadius: '24px',
+    bgcolor: 'rgba(255,255,255,0.1)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255,255,255,0.2)',
+    overflow: 'hidden'
+  }}
+>
+  <Box
+    component="video"
+    src="/videos/pitch-toolhub.mp4"
+    controls
+    preload="metadata"
+    sx={{
+      width: '100%',
+      height: '100%',
+      display: 'block',
+      objectFit: 'cover'
+    }}
+  />
+</Paper>
 
           <Typography variant="body1" sx={{ mt: 8, fontFamily: 'Poppins', fontStyle: 'italic', opacity: 0.8 }}>
             Todas as informações que você precisa em um só lugar.

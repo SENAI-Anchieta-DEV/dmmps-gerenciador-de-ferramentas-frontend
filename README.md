@@ -1,74 +1,249 @@
-<<<<<<< HEAD
-# Getting Started with Create React App
+<p align="center">
+  <img src="public/imagens/logoToolhub.png" alt="Logo ToolHub" width="350"/>
+</p>
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+<h1 align="center">ToolHub</h1>
 
-## Available Scripts
+<p align="center">
+Sistema Inteligente para Gerenciamento de Ferramentas
+</p>
 
-In the project directory, you can run:
+<p align="center">
+Aplicação desenvolvida para digitalizar o gerenciamento de ferramentas em laboratórios, oficinas, almoxarifados e ambientes educacionais.
+</p>
 
-### `npm start`
+<p align="center">
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+<a href="#sobre">Sobre</a> •
+<a href="#problema">Problema</a> •
+<a href="#solucao">Solução</a> •
+<a href="#funcionalidades">Funcionalidades</a> •
+<a href="#tecnologias">Tecnologias</a> •
+<a href="#instalacao">Instalação</a>
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+</p>
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# 📖 Sobre
 
-### `npm run build`
+O **ToolHub** é uma aplicação web desenvolvida para digitalizar e otimizar o gerenciamento de ferramentas em laboratórios, oficinas, almoxarifados e ambientes educacionais.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+O sistema substitui controles realizados em papel ou planilhas por uma plataforma moderna, proporcionando:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- rastreabilidade completa das ferramentas;
+- organização dos processos;
+- redução de perdas operacionais;
+- maior confiabilidade das informações.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Este projeto foi desenvolvido como Trabalho de Conclusão de Curso (TCC) do curso **Técnico em Desenvolvimento de Sistemas** do **SENAI Anchieta**.
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+# ⚠ Problema
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Em muitos laboratórios e oficinas ainda é comum encontrar processos como:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- controle manual;
+- empréstimos registrados em papel;
+- ausência de histórico;
+- dificuldade para localizar ferramentas;
+- perdas e extravios;
+- falta de indicadores.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Esses fatores comprometem a produtividade e dificultam a gestão dos recursos.
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+# 💡 Nossa solução
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+O **ToolHub** centraliza todas essas operações em uma única plataforma, permitindo:
 
-### Code Splitting
+- gerenciamento de ferramentas;
+- controle de empréstimos;
+- registro de devoluções;
+- histórico completo de movimentações;
+- registro de ocorrências;
+- gerenciamento de usuários;
+- diferentes níveis de acesso.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
+# 🚀 Funcionalidades
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### 🔐 Login
 
-### Making a Progressive Web App
+Autenticação integrada ao backend.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### 📊 Dashboard
 
-### Advanced Configuration
+Visualização rápida das principais informações do sistema.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### 🛠 Gerenciamento de Ferramentas
 
-### Deployment
+- cadastro;
+- consulta;
+- atualização;
+- disponibilidade.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### 📦 Empréstimos
 
-### `npm run build` fails to minify
+Controle completo das retiradas das ferramentas.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-=======
-# dmmps-gerenciador-de-ferramentas-frontend
->>>>>>> 9b0a9b04e309f1b50010dc3259d980076df6fd4a
+### 📜 Histórico
+
+Consulta de todas as movimentações realizadas.
+
+### ⚠ Ocorrências
+
+Registro de danos, perdas e demais problemas encontrados.
+
+### 👤 Perfil
+
+Gerenciamento das informações do usuário autenticado.
+
+---
+
+# 🛠 Tecnologias Utilizadas
+
+## Frontend
+
+- React
+- Create React App
+- JavaScript
+- Material UI
+- React Router DOM
+- CSS3
+
+## Backend
+
+- Spring Boot
+- Java
+- JWT
+- REST API
+
+## Banco de Dados
+
+- PostgreSQL (Produção)
+- H2 Database (Desenvolvimento)
+
+## Deploy
+
+- Firebase Hosting
+- Render
+
+---
+
+# 📂 Estrutura do Projeto
+
+```text
+src
+│
+├── components
+│   └── Layout.jsx
+│
+├── pages
+│   ├── Login.jsx
+│   ├── DashboardInicio.jsx
+│   ├── Ferramentas.jsx
+│   ├── EmUso.jsx
+│   ├── Historico.jsx
+│   ├── Ocorrencias.jsx
+│   ├── Perfil.jsx
+│   ├── CadastrarPerfil.jsx
+│   └── ListarPerfis.jsx
+│
+├── apiConfig.js
+├── App.jsx
+└── index.js
+```
+
+---
+
+# 🏗 Arquitetura
+
+```text
+            Usuário
+               │
+               ▼
+      React + Material UI
+               │
+               ▼
+      REST API (Spring Boot)
+               │
+               ▼
+         PostgreSQL
+```
+
+---
+
+# 💻 Como executar
+
+Clone o repositório
+
+```bash
+git clone https://github.com/SENAI-Anchieta-DEV/dmmps-gerenciador-de-ferramentas-frontend.git
+```
+
+Entre na pasta
+
+```bash
+cd dmmps-gerenciador-de-ferramentas-frontend
+```
+
+Instale as dependências
+
+```bash
+npm install
+```
+
+Execute o projeto
+
+```bash
+npm start
+```
+
+---
+
+# 🌐 Deploy
+
+Frontend publicado em:
+
+https://toolhub-frontend.web.app
+
+---
+
+# 🔗 Integração
+
+O frontend consome uma API REST desenvolvida em Spring Boot responsável por:
+
+- autenticação;
+- gerenciamento de usuários;
+- gerenciamento de ferramentas;
+- empréstimos;
+- ocorrências;
+- histórico.
+
+---
+
+# 🚧 Futuras Melhorias
+
+- notificações em tempo real;
+- integração com QR Code;
+- integração com RFID;
+- dashboard analítico;
+- relatórios em PDF;
+- aplicativo mobile;
+- integração com dispositivos IoT.
+
+---
+
+# 👥 Equipe
+
+Projeto desenvolvido pelos alunos do curso **Técnico em Desenvolvimento de Sistemas** do **SENAI Anchieta**.
+
+---
+
+# 📄 Licença
+
+Projeto desenvolvido exclusivamente para fins acadêmicos.

@@ -175,11 +175,29 @@ const Layout = ({ toggleColorMode }) => {
         <Drawer variant="permanent" sx={{ width: drawerWidth, '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box', bgcolor: 'background.paper', borderRight: '1px solid', borderColor: 'divider' } }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             {/* Logo Preservada */}
-            <Box sx={{ height: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid', borderColor: 'divider', m: 3, borderRadius: '12px', position: 'relative', flexShrink: 0 }}>
-              <Box sx={{ position: 'absolute', width: '100%', height: '1px', bgcolor: 'divider', transform: 'rotate(27deg)' }} />
-              <Box sx={{ position: 'absolute', width: '100%', height: '1px', bgcolor: 'divider', transform: 'rotate(-27deg)' }} />
-              <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'Poppins' }}>LOGO TOOLHUB</Typography>
-            </Box>
+            <Box
+  sx={{
+    height: 110,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    m: 3,
+    borderRadius: '12px',
+    flexShrink: 0,
+    overflow: 'hidden',
+  }}
+>
+  <Box
+    component="img"
+    src="/imagens/logoToolhub.png"
+    alt="Logo ToolHub"
+    sx={{
+      maxWidth: '100%',
+      maxHeight: '100%',
+      objectFit: 'contain',
+    }}
+  />
+</Box>
 
             {/* Avatar do Usuário */}
             <Box onClick={() => navigate('/dashboard/perfil/meu')} sx={{ display: 'flex', alignItems: 'center', px: 3, py: 1.5, gap: 2, flexShrink: 0, cursor: 'pointer', mx: 2, borderRadius: '12px', transition: 'background-color 0.2s ease', '&:hover': { bgcolor: 'action.hover' } }}>
